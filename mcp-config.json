@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "ticketbeep": {
+      "command": "node",
+      "args": ["dist/index.js"],
+      "env": {
+        "TICKETBEEP_API_BASE_URL": "https://ticketbeep-api-dev.up.railway.app",
+        "TICKETBEEP_API_KEY": "your_actual_api_key_here"
+      }
+    }
+  }
+}
