@@ -3,6 +3,13 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { config } from "./config/index.js";
 import { ticketbeepApi } from "./services/ticketbeep-api.js";
 import { z } from "zod";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const rootDir = path.join(__dirname, "..");
 
 async function main() {
   console.log("Starting TicketBeep MCP Server...");
@@ -81,15 +88,15 @@ async function main() {
     }
   );
 
-  server.resource("ticketbeep", "https://api.ticketbeep.com", async () => ({
+  server.resource("ticketbeep", "doc://contract.txt", async () => ({
     contents: [
       {
-        text: JSON.stringify({
-          apiBaseUrl: config.ticketbeep.apiBaseUrl,
-          apiKey: config.ticketbeep.apiKey,
-        }),
-        uri: "config.json",
-        mimeType: "application/json",
+        text: fs.readFileSync(
+          path.join(rootDir, "src", "assets", "contract.txt"),
+          "utf8"
+        ),
+        uri: "contract.txt",
+        mimeType: "text/plain",
       },
     ],
   }));
