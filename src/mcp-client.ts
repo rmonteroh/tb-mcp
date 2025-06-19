@@ -2,17 +2,11 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import readline from "readline/promises";
 import dotenv from "dotenv";
-import {
-  GenerateContentResponse,
-  GoogleGenAI,
-  FunctionCallingConfigMode,
-} from "@google/genai";
-import { Tool } from "@modelcontextprotocol/sdk/types";
+import { GoogleGenAI, FunctionCallingConfigMode } from "@google/genai";
 
 dotenv.config();
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-console.log("GEMINI_API_KEY", GEMINI_API_KEY);
 if (!GEMINI_API_KEY) {
   throw new Error("GEMINI_API_KEY is not set");
 }
@@ -29,7 +23,7 @@ export class MCPClient {
     });
     this.mcp = new Client({ name: "mcp-client-cli", version: "1.0.0" });
   }
-  // methods will go here
+
   async connectToServer(serverScriptPath: string) {
     try {
       const isJs = serverScriptPath.endsWith(".js");
