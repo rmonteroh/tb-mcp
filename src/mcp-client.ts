@@ -2,12 +2,17 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import readline from "readline/promises";
 import dotenv from "dotenv";
-import { GenerateContentResponse, GoogleGenAI } from "@google/genai";
+import {
+  GenerateContentResponse,
+  GoogleGenAI,
+  FunctionCallingConfigMode,
+} from "@google/genai";
 import { Tool } from "@modelcontextprotocol/sdk/types";
 
 dotenv.config();
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+console.log("GEMINI_API_KEY", GEMINI_API_KEY);
 if (!GEMINI_API_KEY) {
   throw new Error("GEMINI_API_KEY is not set");
 }
@@ -66,62 +71,100 @@ export class MCPClient {
     const messages = [
       {
         role: "user",
-        content: query,
+        parts: [{ text: query }],
       },
     ];
 
-    const response: GenerateContentResponse =
-      await this.gemini.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: messages,
-      });
+    // Convert MCP tools to Gemini function declarations
+    const geminiTools = [
+      {
+        functionDeclarations: this.tools.map((tool) => ({
+          name: tool.name,
+          description: tool.description,
+          parameters: tool.input_schema,
+        })),
+      },
+    ];
 
-    const finalText = [];
+    const config = {
+      tools: geminiTools,
+      toolConfig: {
+        functionCallingConfig: {
+          mode: FunctionCallingConfigMode.AUTO,
+        },
+      },
+    };
 
-    if (response.candidates?.[0]?.content?.parts) {
-      for (const part of response.candidates[0].content.parts) {
-        if (typeof part === "string") {
-          // Text response
-          finalText.push(part);
-        } else if (part.functionCall) {
-          // Function call
-          const toolName = part.functionCall.name;
-          const toolArgs = part.functionCall.args as
-            | { [x: string]: unknown }
-            | undefined;
+    let response = await this.gemini.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: messages,
+      config,
+    });
 
-          const result = await this.mcp.callTool({
-            name: toolName || "",
-            arguments: toolArgs,
-          });
-          finalText.push(
-            `[Calling tool ${toolName} with args ${JSON.stringify(toolArgs)}]`
-          );
+    // console.log("Gemini raw response:", JSON.stringify(response, null, 2));
 
-          messages.push({
-            role: "user",
-            content: result.content as string,
-          });
+    let finalText = [];
+    let loopCount = 0;
+    const maxLoops = 5;
+    while (loopCount++ < maxLoops) {
+      const part = response.candidates?.[0]?.content?.parts?.[0];
+      if (!part) break;
 
-          const followupResponse = await this.gemini.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: query,
-          });
+      if (typeof part === "string") {
+        finalText.push(part);
+        break;
+      } else if (part.functionCall) {
+        // Function call
+        const toolName = part.functionCall.name;
+        const toolArgs = part.functionCall.args as
+          | { [x: string]: unknown }
+          | undefined;
 
-          if (followupResponse.candidates?.[0]?.content?.parts?.[0]) {
-            finalText.push(
-              typeof followupResponse.candidates[0].content.parts[0] ===
-                "string"
-                ? followupResponse.candidates[0].content.parts[0]
-                : JSON.stringify(
-                    followupResponse.candidates[0].content.parts[0]
-                  )
-            );
-          }
+        console.log("Calling tool:", toolName, toolArgs);
+        const result = await this.mcp.callTool({
+          name: toolName || "",
+          arguments: toolArgs,
+        });
+        let toolResponseContent: any = result.content;
+        if (typeof toolResponseContent === "string") {
+          try {
+            toolResponseContent = JSON.parse(toolResponseContent);
+          } catch {}
         }
+        // Ensure toolResponseContent is a plain object
+        if (
+          typeof toolResponseContent !== "object" ||
+          toolResponseContent === null ||
+          Array.isArray(toolResponseContent)
+        ) {
+          toolResponseContent = { result: toolResponseContent };
+        }
+        console.log(
+          "Tool response:",
+          JSON.stringify(toolResponseContent, null, 2)
+        );
+        messages.push({
+          role: "user",
+          parts: [
+            {
+              functionResponse: {
+                name: toolName,
+                response: toolResponseContent,
+              },
+            } as any,
+          ],
+        });
+        response = await this.gemini.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: messages,
+          config,
+        });
+      } else {
+        // Unknown part type, print as JSON for debugging
+        finalText.push(JSON.stringify(part));
+        break;
       }
     }
-
     return finalText.join("\n");
   }
 
@@ -141,11 +184,18 @@ export class MCPClient {
           break;
         }
         if (!message.trim()) {
-          // If input is empty, prompt again
           continue;
         }
-        const response = await this.processQuery(message);
-        console.log("\n" + response);
+        try {
+          const response = await this.processQuery(message);
+          if (!response) {
+            console.log("\n[No response received from Gemini or tool]");
+          } else {
+            console.log("\n" + response);
+          }
+        } catch (err) {
+          console.error("\n[Error processing query]:", err);
+        }
       }
     } finally {
       rl.close();
