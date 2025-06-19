@@ -7,8 +7,10 @@
   "scripts": {
     "build": "tsc && cp .env dist/ 2>/dev/null || echo 'No .env file to copy'",
     "start": "node --inspect dist/index.js",
+    "start:client": "node dist/client.js dist/index.js",
     "start:inspector": "npx -y @modelcontextprotocol/inspector node dist/index.js",
     "dev": "tsx watch src/index.ts",
+    "dev:express": "tsx watch src/web-server.ts",
     "test": "jest",
     "lint": "eslint src/**/*.ts",
     "format": "prettier --write src/**/*.ts"
@@ -23,12 +25,15 @@
   "author": "Your Name",
   "license": "MIT",
   "dependencies": {
+    "@google/genai": "^1.5.1",
     "@modelcontextprotocol/sdk": "^1.4.0",
     "axios": "^1.6.0",
     "dotenv": "^16.3.1",
+    "express": "^5.1.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@types/express": "^5.0.3",
     "@types/node": "^20.8.0",
     "@typescript-eslint/eslint-plugin": "^6.9.0",
     "@typescript-eslint/parser": "^6.9.0",

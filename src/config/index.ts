@@ -13,6 +13,9 @@ export interface Config {
     port: number;
     host: string;
   };
+  gemini: {
+    apiKey: string;
+  };
 }
 
 export const config: Config = {
@@ -26,6 +29,9 @@ export const config: Config = {
   mcp: {
     port: parseInt(process.env.MCP_SERVER_PORT || "3000", 10),
     host: process.env.MCP_SERVER_HOST || "localhost",
+  },
+  gemini: {
+    apiKey: process.env.GEMINI_API_KEY || "",
   },
 };
 
