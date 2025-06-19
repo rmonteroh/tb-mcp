@@ -1,14 +1,6 @@
-import {
-  McpServer,
-  ToolCallback,
-} from "@modelcontextprotocol/sdk/server/mcp.js";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { config } from "./config/index.js";
-import { tools } from "./tools/index.js";
-import { ZodRawShape } from "zod";
-import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
-import { schemas } from "./schemas/index.js";
-import { validateWithZodSafe } from "./utils/schema-converter.js";
 import { ticketbeepApi } from "./services/ticketbeep-api.js";
 import { z } from "zod";
 
@@ -85,6 +77,44 @@ async function main() {
       });
       return {
         content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+      };
+    }
+  );
+
+  server.resource("ticketbeep", "https://api.ticketbeep.com", async () => ({
+    contents: [
+      {
+        text: JSON.stringify({
+          apiBaseUrl: config.ticketbeep.apiBaseUrl,
+          apiKey: config.ticketbeep.apiKey,
+        }),
+        uri: "config.json",
+        mimeType: "application/json",
+      },
+    ],
+  }));
+
+  server.prompt(
+    "generate_media_plan",
+    "Generate a media plan for an artist's event",
+    async (extra) => {
+      return {
+        messages: [
+          {
+            role: "assistant",
+            content: {
+              type: "text",
+              text:
+                "To generate a media plan, I'll need some information. Please provide:\n" +
+                "1. The artist's name\n" +
+                "2. Your total budget\n" +
+                "3. Start date (YYYY-MM-DD)\n" +
+                "4. End date (YYYY-MM-DD)",
+            },
+          },
+        ],
+        description:
+          "This prompt helps generate a comprehensive media plan for an artist's event, including digital, geo-targeting, influencer, OOH, and analog marketing strategies.",
       };
     }
   );
