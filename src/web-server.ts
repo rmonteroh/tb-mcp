@@ -1,6 +1,7 @@
 import express, { Request, Response } from "express";
 import { tools } from "./tools/index.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 
 const app = express();
 app.use(express.json());
@@ -14,6 +15,10 @@ const server = new McpServer(
     capabilities: {},
   }
 );
+
+const transport = new StreamableHTTPServerTransport({
+  sessionIdGenerator: () => Math.random().toString(36).substring(2),
+});
 
 // Dynamically create endpoints for each tool
 for (const tool of tools) {
@@ -38,6 +43,8 @@ for (const tool of tools) {
     }
   });
 }
+
+server.connect(transport);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

@@ -8,7 +8,7 @@ export class TicketBeepApiService {
   constructor() {
     this.client = axios.create({
       baseURL: config.ticketbeep.apiBaseUrl,
-      timeout: 30000,
+      timeout: 300000,
       headers: {
         "Content-Type": "application/json",
         Referer: "https://dev-app.ticketbeep.com",
@@ -17,13 +17,18 @@ export class TicketBeepApiService {
 
     // Add request interceptor for authentication
     this.client.interceptors.request.use((config) => {
-      if (this.config.ticketbeep.apiKey) {
-        config.headers["X-API-Key"] = this.config.ticketbeep.apiKey;
-      }
+      /* if (this.config.ticketbeep.apiKey) {
+        config.headers["ACCESS-KEY"] = this.config.ticketbeep.apiKey;
+      } */
       if (this.config.ticketbeep.authToken) {
         config.headers["Authorization"] =
           `Bearer ${this.config.ticketbeep.authToken}`;
       }
+      /* const authToken = await this.getAuthorizationToken();
+      console.log("authToken", authToken);
+      if (authToken) {
+        config.headers["Authorization"] = `Bearer ${authToken.token}`;
+      } */
       return config;
     });
 
@@ -51,9 +56,15 @@ export class TicketBeepApiService {
 
   async searchArtists(name?: string): Promise<types.ArtistSearchResponse> {
     try {
+      const authToken = await this.getAuthorizationToken();
+      console.log("authToken", authToken);
+      console.log("headers", this.config.ticketbeep.apiKey);
       const params = name ? { name } : {};
       const response = await this.client.get("/api/media-plan/artists", {
         params,
+        headers: {
+          Authorization: `Bearer ${authToken.token}`,
+        },
       });
       return response.data;
     } catch (error) {
@@ -303,6 +314,15 @@ export class TicketBeepApiService {
         params: { email },
       }
     );
+    return response.data;
+  }
+
+  private async getAuthorizationToken(): Promise<{ token: string }> {
+    const response = await this.client.get("/api/auth/generate-token", {
+      headers: {
+        "ACCESS-KEY": this.config.ticketbeep.apiKey,
+      },
+    });
     return response.data;
   }
 }

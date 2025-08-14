@@ -44,6 +44,10 @@ export class MCPClient {
       await this.mcp.connect(this.transport);
 
       const toolsResult = await this.mcp.listTools();
+      /* const resourcesResult = await this.mcp.listResources();
+      const promptsResult = await this.mcp.listPrompts();
+      console.log("Resources:", resourcesResult);
+      console.log("Prompts:", promptsResult); */
       this.tools = toolsResult.tools.map((tool) => {
         return {
           name: tool.name,

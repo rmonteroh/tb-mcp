@@ -64,6 +64,7 @@ export const searchArtistsTool: ToolWithHandler = {
     properties: {
       name: { type: "string", description: "Artist name to search for" },
     },
+    required: ["name"],
   },
   handler: async (args: any) => {
     console.log(
