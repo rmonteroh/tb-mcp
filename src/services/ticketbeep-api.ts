@@ -20,9 +20,8 @@ export class TicketBeepApiService {
       /* if (this.config.ticketbeep.apiKey) {
         config.headers["ACCESS-KEY"] = this.config.ticketbeep.apiKey;
       } */
-      if (this.config.ticketbeep.authToken) {
-        config.headers["Authorization"] =
-          `Bearer ${this.config.ticketbeep.authToken}`;
+      if (this.config.ticketbeep.apiKey) {
+        config.headers["tb-access-key"] = this.config.ticketbeep.apiKey;
       }
       /* const authToken = await this.getAuthorizationToken();
       console.log("authToken", authToken);
@@ -56,15 +55,15 @@ export class TicketBeepApiService {
 
   async searchArtists(name?: string): Promise<types.ArtistSearchResponse> {
     try {
-      const authToken = await this.getAuthorizationToken();
-      console.log("authToken", authToken);
-      console.log("headers", this.config.ticketbeep.apiKey);
+      // const authToken = await this.getAuthorizationToken();
+      // console.log("authToken", authToken);
+      // console.log("headers", this.config.ticketbeep.apiKey);
       const params = name ? { name } : {};
       const response = await this.client.get("/api/media-plan/artists", {
         params,
-        headers: {
-          Authorization: `Bearer ${authToken.token}`,
-        },
+        // headers: {
+        //   Authorization: `Bearer ${authToken.token}`,
+        // },
       });
       return response.data;
     } catch (error) {
@@ -317,11 +316,15 @@ export class TicketBeepApiService {
     return response.data;
   }
 
-  private async getAuthorizationToken(): Promise<{ token: string }> {
-    const response = await this.client.get("/api/auth/generate-token", {
-      headers: {
-        "ACCESS-KEY": this.config.ticketbeep.apiKey,
-      },
+  // Talent Buyers Endpoints
+  async getTalentBuyers(
+    page: number,
+    perPage: number,
+    filter: string,
+    sort: string
+  ) {
+    const response = await this.client.get("/api/talent-buyers", {
+      params: { page, perPage, filter, sort },
     });
     return response.data;
   }

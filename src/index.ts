@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { config } from "./config/index.js";
-import { registerApiTools, registerApiResources, registerApiPrompts } from "./tools/api.tools.js";
+import { registerApiTools, registerApiResources, registerApiPrompts } from "./tools/index.js";
 
 async function main() {
   console.log("Starting TicketBeep MCP Server...");

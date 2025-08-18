@@ -1,0 +1,421 @@
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+
+export interface PromptDefinition {
+  name: string;
+  description: string;
+  handler: (args?: any) => Promise<{
+    messages: Array<{
+      role: "system" | "user" | "assistant";
+      content: {
+        type: "text" | "image";
+        text?: string;
+        data?: string;
+        mimeType?: string;
+      };
+    }>;
+    description?: string;
+  }>;
+  arguments?: Record<string, any>;
+}
+
+// Media Plan Generation Prompt
+export const generateMediaPlanPrompt: PromptDefinition = {
+  name: "generate_media_plan",
+  description: "Interactive prompt to help generate a comprehensive media plan for an artist's event",
+  handler: async () => {
+    return {
+      messages: [
+        {
+          role: "assistant",
+          content: {
+            type: "text",
+            text: `I'll help you generate a comprehensive media plan for an artist's event. To get started, I need some key information:
+
+**Required Information:**
+1. **Artist Name** - I'll search for the artist to get their ID and metadata
+2. **Total Budget** - Your available budget for the entire campaign (in USD)
+3. **Event Dates** - Start date and end date for the campaign (YYYY-MM-DD format)
+4. **Venue** - The venue name or ID where the event will take place
+
+**Optional Configuration:**
+- Digital marketing (social media, online ads)
+- Geographic targeting (location-based marketing)
+- Influencer partnerships
+- Out-of-home advertising (billboards, transit)
+- Analog radio advertising
+
+Please provide the artist name and budget to begin, and I'll guide you through the rest of the process.`,
+          },
+        },
+      ],
+      description: "This prompt helps generate a comprehensive media plan by gathering necessary information step by step.",
+    };
+  },
+};
+
+// Artist Discovery Prompt
+export const artistDiscoveryPrompt: PromptDefinition = {
+  name: "artist_discovery",
+  description: "Help users discover and explore artist information",
+  handler: async () => {
+    return {
+      messages: [
+        {
+          role: "assistant",
+          content: {
+            type: "text",
+            text: `I'll help you discover and explore artist information in the TicketBeep database.
+
+**What I can help you with:**
+- Search for artists by name
+- Get detailed artist profiles with metadata
+- View artist statistics and performance data
+- Analyze artist demographics and market reach
+
+**To get started:**
+Simply provide an artist name, and I'll search for matches. For example:
+- "Taylor Swift"
+- "Bad Bunny" 
+- "Drake"
+
+Once we find the artist, I can show you:
+- Basic information (name, genres, followers)
+- Career statistics and analytics
+- Geographic performance data
+- Demographic insights
+
+What artist would you like to explore?`,
+          },
+        },
+      ],
+      description: "Helps users search for and explore artist information and analytics.",
+    };
+  },
+};
+
+// Campaign Management Prompt
+export const campaignManagementPrompt: PromptDefinition = {
+  name: "campaign_management",
+  description: "Guide users through campaign creation and management",
+  handler: async () => {
+    return {
+      messages: [
+        {
+          role: "assistant",
+          content: {
+            type: "text",
+            text: `I'll guide you through creating and managing marketing campaigns for music events.
+
+**Campaign Management Features:**
+- Create new campaigns with detailed phases
+- View all existing campaigns
+- Update campaign configurations
+- Track campaign performance
+- Delete campaigns when needed
+
+**To create a new campaign, I'll need:**
+1. **Artist ID** - The target artist (I can help you find this)
+2. **Venue ID** - The event venue
+3. **Campaign Phases** - Marketing timeline and activities
+4. **Budget Summary** - Financial breakdown
+5. **Configuration** - Campaign settings and preferences
+6. **User ID** - Your user identifier
+
+**Campaign Management Options:**
+- List all campaigns: I'll show you existing campaigns
+- Create campaign: Step-by-step campaign creation
+- Update campaign: Modify existing campaign details
+- View campaign: Get detailed campaign information
+
+What would you like to do with campaigns today?`,
+          },
+        },
+      ],
+      description: "Comprehensive guide for creating and managing marketing campaigns.",
+    };
+  },
+};
+
+// Analytics Dashboard Prompt
+export const analyticsDashboardPrompt: PromptDefinition = {
+  name: "analytics_dashboard",
+  description: "Help users explore industry analytics and insights",
+  handler: async () => {
+    return {
+      messages: [
+        {
+          role: "assistant",
+          content: {
+            type: "text",
+            text: `Welcome to the TicketBeep Analytics Dashboard! I can help you explore comprehensive music industry data and insights.
+
+**Available Analytics:**
+
+📊 **Pricing Analytics**
+- Average ticket prices by year
+- Price trends and forecasting
+
+🏙️ **Geographic Performance**
+- Top performing cities
+- Regional market analysis
+- State-by-state comparisons
+
+🎵 **Genre Intelligence**
+- Top performing music genres
+- Genre trends over time
+- Market share analysis
+
+💰 **Revenue Insights**
+- Gross revenue analytics
+- Revenue by region and genre
+- Performance benchmarking
+
+🎤 **Promoter Data**
+- Top promoter statistics
+- Promoter performance metrics
+- Market share analysis
+
+📈 **Traffic & Shows**
+- Show attendance data
+- Traffic patterns and trends
+- Venue performance metrics
+
+**To get started:**
+Please specify a year (e.g., 2023, 2024) and what type of analytics you'd like to explore. I'll provide detailed insights and visualizations for your chosen metrics.
+
+What analytics would you like to explore today?`,
+          },
+        },
+      ],
+      description: "Interactive dashboard for exploring music industry analytics and insights.",
+    };
+  },
+};
+
+// Geographic Targeting Prompt
+export const geographicTargetingPrompt: PromptDefinition = {
+  name: "geographic_targeting",
+  description: "Help users with geographic targeting and zipcode analysis",
+  handler: async () => {
+    return {
+      messages: [
+        {
+          role: "assistant",
+          content: {
+            type: "text",
+            text: `I'll help you optimize geographic targeting for your music marketing campaigns using advanced demographic and market analysis.
+
+**Geographic Targeting Tools:**
+
+🎯 **Zipcode Scoring**
+- Score zipcodes based on artist demographics
+- Analyze market potential by area
+- Factor in ethnicity, income, and spending patterns
+- Optimize budget allocation by geographic performance
+
+🗺️ **State Analysis**
+- Find nearby states within specific radius
+- Cross-state marketing opportunities
+- Regional campaign expansion
+
+**Zipcode Scoring Process:**
+To score zipcodes effectively, I need:
+1. **Target Zipcodes** - List of areas to analyze
+2. **Artist Information** - Artist ID and follower count
+3. **Demographic Data** - Ethnicity and country information
+4. **Scoring Filters** - Which factors to prioritize:
+   - Nationality alignment
+   - Ethnicity matching
+   - Historical sales data
+   - Income demographics
+   - Customer spending patterns
+
+**State Proximity Analysis:**
+- Enter a state code (e.g., "CA", "NY", "TX")
+- Specify search radius in miles
+- Get ranked list of nearby states for campaign expansion
+
+Would you like to start with zipcode scoring or state analysis?`,
+          },
+        },
+      ],
+      description: "Advanced geographic targeting using demographic and market analysis.",
+    };
+  },
+};
+
+// Event Discovery Prompt
+export const eventDiscoveryPrompt: PromptDefinition = {
+  name: "event_discovery",
+  description: "Help users discover events and venues",
+  handler: async () => {
+    return {
+      messages: [
+        {
+          role: "assistant",
+          content: {
+            type: "text",
+            text: `I'll help you discover events and venues for your music marketing campaigns and event planning.
+
+**Discovery Tools Available:**
+
+🎪 **Event Discovery**
+- Find events by location and date range
+- Filter by event type, size, and genre
+- Identify co-marketing opportunities
+- Analyze event competition and timing
+
+📍 **Venue & Place Discovery**
+- Search venues using Google Places integration
+- Find suitable locations for events
+- Analyze venue capacity and demographics
+- Geographic venue mapping
+
+**Event Search Criteria:**
+You can search events by:
+- **Location** - City, state, or geographic coordinates
+- **Date Range** - Specific time periods
+- **Event Type** - Concerts, festivals, clubs, etc.
+- **Audience Size** - Venue capacity ranges
+- **Genre** - Music genre preferences
+
+**Venue Search Options:**
+- **Location-based** - Find venues near specific areas
+- **Capacity requirements** - Venues matching attendance needs
+- **Amenities** - Specific venue features and services
+- **Accessibility** - Transportation and parking options
+
+**To get started:**
+Please let me know:
+1. What type of discovery you need (events or venues)
+2. Your target location or area
+3. Date range (for events)
+4. Any specific requirements or preferences
+
+What would you like to discover today?`,
+          },
+        },
+      ],
+      description: "Comprehensive event and venue discovery for music industry professionals.",
+    };
+  },
+};
+
+// Billboard & Radio Advertising Prompt
+export const mediaInventoryPrompt: PromptDefinition = {
+  name: "media_inventory",
+  description: "Help users explore billboard and radio advertising options",
+  handler: async () => {
+    return {
+      messages: [
+        {
+          role: "assistant",
+          content: {
+            type: "text",
+            text: `I'll help you explore billboard and radio advertising inventory for your music marketing campaigns.
+
+**Available Media Inventory:**
+
+🗼 **Billboard Advertising**
+- Search billboard locations nationwide
+- Filter by format, size, and visibility
+- Analyze traffic patterns and demographics
+- Get pricing and availability information
+- Geographic targeting by zipcode
+
+📻 **Analog Radio Advertising**
+- Search radio stations by market
+- Filter by format, reach, and demographics  
+- Analyze listener data and ratings
+- Geographic coverage analysis
+- Station contact and pricing information
+
+**Billboard Search Options:**
+- **Location Filtering** - By state, city, or zipcode
+- **Format Types** - Digital, static, transit, etc.
+- **Size Categories** - Bulletin, poster, junior poster
+- **Traffic Analysis** - High-traffic locations
+- **Demographic Alignment** - Target audience matching
+
+**Radio Station Search:**
+- **Market Size** - Major, medium, small markets
+- **Format Types** - Rock, pop, hip-hop, country, etc.
+- **Daypart Availability** - Morning, afternoon, evening slots
+- **Reach Analysis** - Coverage area and listener counts
+- **Demographic Targeting** - Age, income, interests
+
+**Search Parameters:**
+You can filter results by:
+- Geographic location
+- Budget requirements
+- Target demographics
+- Campaign duration
+- Media format preferences
+
+What type of media inventory would you like to explore - billboards or radio stations?`,
+          },
+        },
+      ],
+      description: "Explore billboard and radio advertising inventory with advanced filtering and targeting options.",
+    };
+  },
+};
+
+// Export all prompts
+export const allPrompts: PromptDefinition[] = [
+  generateMediaPlanPrompt,
+  artistDiscoveryPrompt,
+  campaignManagementPrompt,
+  analyticsDashboardPrompt,
+  geographicTargetingPrompt,
+  eventDiscoveryPrompt,
+  mediaInventoryPrompt,
+];
+
+// Registration function for prompts
+export function registerPrompts(server: McpServer): void {
+  allPrompts.forEach(prompt => {
+    server.prompt(
+      prompt.name,
+      prompt.description,
+      prompt.arguments || {},
+      prompt.handler
+    );
+  });
+}
+
+// Category-specific registration functions
+export function registerMediaPlanningPrompts(server: McpServer): void {
+  const mediaPlanningPrompts = [generateMediaPlanPrompt, geographicTargetingPrompt];
+  mediaPlanningPrompts.forEach(prompt => {
+    server.prompt(prompt.name, prompt.description, prompt.arguments || {}, prompt.handler);
+  });
+}
+
+export function registerDiscoveryPrompts(server: McpServer): void {
+  const discoveryPrompts = [artistDiscoveryPrompt, eventDiscoveryPrompt];
+  discoveryPrompts.forEach(prompt => {
+    server.prompt(prompt.name, prompt.description, prompt.arguments || {}, prompt.handler);
+  });
+}
+
+export function registerAnalyticsPrompts(server: McpServer): void {
+  const analyticsPrompts = [analyticsDashboardPrompt];
+  analyticsPrompts.forEach(prompt => {
+    server.prompt(prompt.name, prompt.description, prompt.arguments || {}, prompt.handler);
+  });
+}
+
+export function registerCampaignPrompts(server: McpServer): void {
+  const campaignPrompts = [campaignManagementPrompt];
+  campaignPrompts.forEach(prompt => {
+    server.prompt(prompt.name, prompt.description, prompt.arguments || {}, prompt.handler);
+  });
+}
+
+export function registerMediaInventoryPrompts(server: McpServer): void {
+  const mediaInventoryPrompts = [mediaInventoryPrompt];
+  mediaInventoryPrompts.forEach(prompt => {
+    server.prompt(prompt.name, prompt.description, prompt.arguments || {}, prompt.handler);
+  });
+}

@@ -3,7 +3,11 @@ import { randomUUID } from "node:crypto";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
-import { registerApiTools, registerApiResources, registerApiPrompts } from "./tools/api.tools.js";
+import {
+  registerApiTools,
+  registerApiResources,
+  registerApiPrompts,
+} from "./tools/index.js";
 
 const app = express();
 app.use(express.json());

@@ -1,5 +1,5 @@
 import express, { Request, Response } from "express";
-import { tools } from "./tools/index.js";
+import { allTools } from "./tools/index.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 
@@ -21,7 +21,7 @@ const transport = new StreamableHTTPServerTransport({
 });
 
 // Dynamically create endpoints for each tool
-for (const tool of tools) {
+for (const tool of allTools) {
   app.post(`/tools/${tool.name}`, async (req: Request, res: Response) => {
     try {
       const extra = {
