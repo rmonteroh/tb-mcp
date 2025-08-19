@@ -100,14 +100,28 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
+// Root endpoint for basic info
+app.get("/", (req, res) => {
+  res.json({
+    name: "ticketbeep-mcp-http",
+    version: "1.0.0",
+    status: "running",
+    endpoints: ["/health", "/mcp"],
+  });
+});
+
 const port = config.mcp.port;
-/* app.listen(port, () => {
-  console.log(`MCP server running on port ${port}`);
-  if (config.ticketbeep.apiKey) {
-    console.log("TicketBeep API key authentication enabled");
-  } else {
-    console.log("No TicketBeep API key configured - authentication disabled");
-  }
-}); */
+
+// Only start the server if we're not in a serverless environment
+if (process.env.NODE_ENV !== "production" || process.env.VERCEL !== "1") {
+  app.listen(port, () => {
+    console.log(`MCP server running on port ${port}`);
+    if (config.ticketbeep.apiKey) {
+      console.log("TicketBeep API key authentication enabled");
+    } else {
+      console.log("No TicketBeep API key configured - authentication disabled");
+    }
+  });
+}
 
 export default app;
