@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc && cp .env dist/ 2>/dev/null || echo 'No .env file to copy'",
-    "start": "node --inspect dist/index.js",
+    "start": "node --inspect dist/http-mcp-server.js",
     "start:inspector": "npx -y @modelcontextprotocol/inspector node dist/index.js",
     "start:inspector:no-auth": "npx -y @modelcontextprotocol/inspector DANGEROUSLY_OMIT_AUTH=true node dist/index.js",
     "start:stdio": "node --inspect dist/stdio-mcp-server.js",
