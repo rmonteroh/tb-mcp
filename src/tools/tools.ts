@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { ToolDefinition } from "./shared-tools";
-import { ticketbeepApi } from "../services/ticketbeep-api";
+import { ToolDefinition } from "./shared-tools.js";
+import { ticketbeepApi } from "../services/ticketbeep-api.js";
 
 // Media Plan Tools
 export const generateMediaPlanTool: ToolDefinition = {

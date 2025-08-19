@@ -7,7 +7,7 @@ import {
   registerApiTools as apiRegisterTools,
   registerApiResources as apiRegisterResources,
   registerApiPrompts as apiRegisterPrompts,
-} from "./api.tools";
+} from "./api.tools.js";
 
 // Export tools for direct access
 export const allTools = apiTools;

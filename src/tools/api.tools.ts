@@ -1,6 +1,5 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { ticketbeepApi } from "../services/ticketbeep-api.js";
-import { z, ZodRawShape } from "zod";
+import { ZodRawShape } from "zod";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -14,7 +13,10 @@ export interface ToolDefinition {
   name: string;
   description: string;
   inputSchema: ZodRawShape;
-  handler: (args: any, extra?: any) => Promise<{ content: { type: "text"; text: string }[] }>;
+  handler: (
+    args: any,
+    extra?: any
+  ) => Promise<{ content: { type: "text"; text: string }[] }>;
 }
 
 // Import tools from organized modules
@@ -24,14 +26,12 @@ import { allTools } from "./tools.js";
 export const apiTools: ToolDefinition[] = allTools;
 
 // Generic function to register tools from an array
-export function registerToolsFromArray(server: McpServer, tools: ToolDefinition[]): void {
-  tools.forEach(tool => {
-    server.tool(
-      tool.name,
-      tool.description,
-      tool.inputSchema,
-      tool.handler
-    );
+export function registerToolsFromArray(
+  server: McpServer,
+  tools: ToolDefinition[]
+): void {
+  tools.forEach((tool) => {
+    server.tool(tool.name, tool.description, tool.inputSchema, tool.handler);
   });
 }
 
@@ -122,12 +122,12 @@ export function registerApiPrompts(server: McpServer): void {
             role: "assistant",
             content: {
               type: "text",
-              text:
-                "I'll help you discover artist information. Simply provide an artist name and I'll search for matches and show you detailed profiles, statistics, and analytics.",
+              text: "I'll help you discover artist information. Simply provide an artist name and I'll search for matches and show you detailed profiles, statistics, and analytics.",
             },
           },
         ],
-        description: "Interactive prompt for discovering artist information and analytics.",
+        description:
+          "Interactive prompt for discovering artist information and analytics.",
       };
     }
   );
