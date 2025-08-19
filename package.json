@@ -15,7 +15,8 @@
     "start:dev:web": "tsx watch src/http-mcp-server.ts",
     "test": "jest",
     "lint": "eslint src/**/*.ts",
-    "format": "prettier --write src/**/*.ts"
+    "format": "prettier --write src/**/*.ts",
+    "vercel-build": "echo 'No build needed'"
   },
   "keywords": [
     "mcp",
