@@ -2,7 +2,7 @@
   "name": "ticketbeep-mcp",
   "version": "1.0.0",
   "description": "MCP server for TicketBeep API integration",
-  "main": "dist/index.js",
+  "main": "dist/http-mcp-server.js",
   "type": "module",
   "scripts": {
     "build": "tsc && cp .env dist/ 2>/dev/null || echo 'No .env file to copy'",

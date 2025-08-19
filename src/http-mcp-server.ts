@@ -8,6 +8,7 @@ import {
   registerApiResources,
   registerApiPrompts,
 } from "./tools/index.js";
+import config from "./config/index.js";
 
 const app = express();
 app.use(express.json());
@@ -94,6 +95,6 @@ app.get("/mcp", handleSessionRequest);
 // Handle DELETE requests for session termination
 app.delete("/mcp", handleSessionRequest);
 
-app.listen(process.env.PORT, () => {
-  console.log(`MCP server running on port ${process.env.PORT}`);
+app.listen(config.mcp.port, () => {
+  console.log(`MCP server running on port ${config.mcp.port}`);
 });
