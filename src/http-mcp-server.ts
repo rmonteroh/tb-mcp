@@ -95,6 +95,17 @@ app.get("/mcp", handleSessionRequest);
 // Handle DELETE requests for session termination
 app.delete("/mcp", handleSessionRequest);
 
-app.listen(config.mcp.port, () => {
-  console.log(`MCP server running on port ${config.mcp.port}`);
+// Health check endpoint (optional, for monitoring)
+app.get("/health", (req, res) => {
+  res.json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
+const port = config.mcp.port;
+app.listen(port, () => {
+  console.log(`MCP server running on port ${port}`);
+  if (config.ticketbeep.apiKey) {
+    console.log("TicketBeep API key authentication enabled");
+  } else {
+    console.log("No TicketBeep API key configured - authentication disabled");
+  }
 });
