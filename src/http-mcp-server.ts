@@ -94,6 +94,6 @@ app.get("/mcp", handleSessionRequest);
 // Handle DELETE requests for session termination
 app.delete("/mcp", handleSessionRequest);
 
-app.listen(3001, () => {
-  console.log("MCP server running on port 3001");
+app.listen(process.env.PORT, () => {
+  console.log(`MCP server running on port ${process.env.PORT}`);
 });

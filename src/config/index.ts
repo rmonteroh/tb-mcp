@@ -27,8 +27,8 @@ export const config: Config = {
     authToken: process.env.TICKETBEEP_AUTH_TOKEN,
   },
   mcp: {
-    port: parseInt(process.env.MCP_SERVER_PORT || "3000", 10),
-    host: process.env.MCP_SERVER_HOST || "localhost",
+    port: parseInt(process.env.PORT || "3001", 10),
+    host: process.env.HOST || "localhost",
   },
   gemini: {
     apiKey: process.env.GEMINI_API_KEY || "",
