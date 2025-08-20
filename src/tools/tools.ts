@@ -3,7 +3,7 @@ import { ToolDefinition } from "./shared-tools.js";
 import { ticketbeepApi } from "../services/ticketbeep-api.js";
 
 // Media Plan Tools
-export const generateMediaPlanTool: ToolDefinition = {
+/* export const generateMediaPlanTool: ToolDefinition = {
   name: "generate_media_plan",
   description:
     "Generate a comprehensive media plan for an artist's event. Requires artistId, venue, totalBudget, startDate, endDate, and config parameters.",
@@ -48,7 +48,7 @@ export const generateMediaPlanTool: ToolDefinition = {
       content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
     };
   },
-};
+}; */
 
 // Artist Tools
 export const searchArtistsTool: ToolDefinition = {
