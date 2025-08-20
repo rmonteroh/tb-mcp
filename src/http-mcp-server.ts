@@ -18,7 +18,7 @@ const transports: { [sessionId: string]: StreamableHTTPServerTransport } = {};
 
 // Handle POST requests for client-to-server communication
 app.post("/mcp", async (req, res) => {
-  // Check for existing session ID
+  /* // Check for existing session ID
   const sessionIdFromBody = req.body?.meta?.sessionId;
   const sessionIdFromHeader = req.headers["mcp-session-id"] as
     | string
@@ -49,20 +49,29 @@ app.post("/mcp", async (req, res) => {
       if (transport.sessionId) {
         delete transports[transport.sessionId];
       }
-    };
-    const server = new McpServer({
-      name: "ticketbeep-mcp-http",
-      version: "1.0.0",
-    });
+    }; */
 
-    // Register shared tools, resources, and prompts
-    registerApiTools(server);
-    registerApiResources(server);
-    registerApiPrompts(server);
+  const clientSessionId = req.body?.meta?.sessionId;
 
-    // Connect to the MCP server
-    await server.connect(transport);
-  } else {
+  // 1. Create a new transport for this specific request.
+  const transport = new StreamableHTTPServerTransport({
+    // If the client sends an ID, use it. Otherwise, generate a new one.
+    // This ensures the client gets a consistent session ID back in the response.
+    sessionIdGenerator: () => clientSessionId || randomUUID(),
+  });
+  const server = new McpServer({
+    name: "ticketbeep-mcp-http",
+    version: "1.0.0",
+  });
+
+  // Register shared tools, resources, and prompts
+  registerApiTools(server);
+  registerApiResources(server);
+  registerApiPrompts(server);
+
+  // Connect to the MCP server
+  await server.connect(transport);
+  /* } else {
     // Invalid request
     res.status(400).json({
       jsonrpc: "2.0",
@@ -73,7 +82,7 @@ app.post("/mcp", async (req, res) => {
       id: null,
     });
     return;
-  }
+  } */
 
   // Handle the request
   await transport.handleRequest(req, res, req.body);
