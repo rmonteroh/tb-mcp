@@ -217,7 +217,7 @@ export const getArtistMetadataTool: ToolDefinition = {
 export const getCampaignsTool: ToolDefinition = {
   name: "get_campaigns",
   description: `
-  Retrieve a paginated list of marketing campaigns with filtering and sorting options. Supports sorting by created and updated, and filtering by artist_id/venue_id using the format (artist_id = "308" || venue_id = "7ux7vmx7exeq29x"), and pagination controls. Example query parameters: sort=created (sort by created date), filter=(artist_id = '308') (filter by artist id, we use the id of the artist, not the name), perPage=50 (results per page), page=1 (page number).
+  Retrieve a paginated list of marketing campaigns with filtering and sorting options. Supports sorting by created and updated, and filtering by artist_id/venue_id using the format (artist_id="308" || venue_id="7ux7vmx7exeq29x"), and pagination controls. Example query parameters: sort=created (sort by created date), filter=(artist_id='308') (filter by artist id, we use the id of the artist, not the name), perPage=50 (results per page), page=1 (page number).
   `,
   inputSchema: {
     page: z
