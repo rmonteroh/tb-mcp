@@ -518,7 +518,7 @@ export const authTools = [checkUserVerificationTool];
 
 // Export all tools as a single array
 export const allTools: ToolDefinition[] = [
-  ...mediaTools,
+  // ...mediaTools,
   ...artistTools,
   // ...geographicTools,
   // ...discoveryTools,
