@@ -164,11 +164,21 @@ export class TicketBeepApiService {
     await this.client.post("/api/campaign", data);
   }
 
-  async getCampaigns(): Promise<
-    { items: types.Campaign[] } & types.ListResponse
-  > {
-    const response = await this.client.get("/api/campaign");
-    return response.data;
+  async getCampaigns(
+    page: number,
+    perPage: number,
+    filter: string,
+    sort: string
+  ): Promise<{ items: types.Campaign[] } & types.ListResponse> {
+    try {
+      const response = await this.client.get("/api/campaign", {
+        params: { page, perPage, filter, sort },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error getting campaigns:", error);
+      throw error;
+    }
   }
 
   async getCampaignById(id: string): Promise<types.Campaign> {

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { ToolDefinition } from "./shared-tools.js";
 import { ticketbeepApi } from "../services/ticketbeep-api.js";
+import { filtersAvailableContext } from "../utils/filters-available.js";
 
 // Media Plan Tools
 /* export const generateMediaPlanTool: ToolDefinition = {
@@ -84,9 +85,11 @@ export const getArtistByIdTool: ToolDefinition = {
 export const getArtistStatsTool: ToolDefinition = {
   name: "get_artist_stats",
   description:
-    "Get artist statistics and analytics data for a specific domain.",
+    "Get artist statistics and analytics data for a specific social media platform.",
   inputSchema: {
-    domain: z.string().min(1, "Domain is required"),
+    domain: z
+      .enum(["instagram", "tiktok", "youtube"])
+      .describe("The social media platform of the artist"),
     artistId: z.string().min(1, "Artist ID is required"),
   },
   handler: async ({ domain, artistId }) => {
@@ -213,10 +216,29 @@ export const getArtistMetadataTool: ToolDefinition = {
 
 export const getCampaignsTool: ToolDefinition = {
   name: "get_campaigns",
-  description: "Retrieve all marketing campaigns.",
-  inputSchema: {},
-  handler: async () => {
-    const result = await ticketbeepApi.getCampaigns();
+  description: `
+  Retrieve a paginated list of marketing campaigns with filtering and sorting options. Supports sorting by created and updated, and filtering by artist_id/venue_id using the format (artist_id = "308" || venue_id = "7ux7vmx7exeq29x"), and pagination controls. Example query parameters: sort=created (sort by created date), filter=(artist_id = '308') (filter by artist id, we use the id of the artist, not the name), perPage=50 (results per page), page=1 (page number).
+  `,
+  inputSchema: {
+    page: z
+      .number()
+      .min(1, "Page number for pagination (starts from 1)")
+      .default(1),
+    perPage: z
+      .number()
+      .min(1, "Page size must be greater than 0")
+      .max(100, "Page size must be less than 100")
+      .default(10),
+    filter: z.string().optional(),
+    sort: z.string().optional().default("name"),
+  },
+  handler: async ({ page, perPage, filter, sort }) => {
+    const result = await ticketbeepApi.getCampaigns(
+      page,
+      perPage,
+      filter,
+      sort
+    );
     return {
       content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
     };
@@ -453,7 +475,9 @@ export const getTalentBuyersTool: ToolDefinition = {
 };
 
 // Export all tools grouped by category
-export const mediaTools = [generateMediaPlanTool];
+export const mediaTools = [
+  /* generateMediaPlanTool */
+];
 export const artistTools = [
   searchArtistsTool,
   getArtistByIdTool,
