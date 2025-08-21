@@ -17,6 +17,7 @@ export class TicketBeepApiService {
 
     // Add request interceptor for authentication
     this.client.interceptors.request.use((config) => {
+      console.log("config-> ", config);
       /* if (this.config.ticketbeep.apiKey) {
         config.headers["ACCESS-KEY"] = this.config.ticketbeep.apiKey;
       } */
