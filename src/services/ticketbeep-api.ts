@@ -165,6 +165,28 @@ export class TicketBeepApiService {
     await this.client.post("/api/campaign", data);
   }
 
+  async getVenues(
+    page: number,
+    perPage: number,
+    filter: string,
+    sort: string
+  ): Promise<{ items: types.Venue[] } & types.ListResponse> {
+    try {
+      const response = await this.client.get("/api/venues", {
+        params: { page, perPage, filter, sort },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error getting venues:", error);
+      throw error;
+    }
+  }
+
+  async getVenueById(id: string): Promise<types.Venue> {
+    const response = await this.client.get(`/api/venues/${id}`);
+    return response.data;
+  }
+
   async getCampaigns(
     page: number,
     perPage: number,

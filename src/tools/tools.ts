@@ -115,6 +115,48 @@ export const getArtistMetadataTool: ToolDefinition = {
   },
 };
 
+// Venue Tools
+export const getVenuesTool: ToolDefinition = {
+  name: "get_venues",
+  description: `
+  Retrieve a paginated list of venues with filtering and sorting options. Supports sorting by name, market, created and updated, and filtering by name/address using the format (name="The Bellwether" || name~"The Bellwether" || address~"Los Angeles" || market="Los Angeles" || market~"Los Angeles"), and pagination controls. Example query parameters: sort=created (sort by created date), filter=(name="The Bellwether") (filter by name, we use the name of the venue, not the id), perPage=50 (results per page), page=1 (page number).
+  `,
+  inputSchema: {
+    page: z
+      .number()
+      .min(1, "Page number for pagination (starts from 1)")
+      .default(1),
+    perPage: z
+      .number()
+      .min(1, "Page size must be greater than 0")
+      .max(100, "Page size must be less than 100")
+      .default(10),
+    filter: z.string().optional(),
+    sort: z.string().optional().default("name"),
+  },
+  handler: async ({ page, perPage, filter, sort }) => {
+    const result = await ticketbeepApi.getVenues(page, perPage, filter, sort);
+    return {
+      content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+    };
+  },
+};
+
+export const getVenueByIdTool: ToolDefinition = {
+  name: "get_venue_by_id",
+  description:
+    "Get detailed venue information by ID including metadata and statistics.",
+  inputSchema: {
+    id: z.string().min(1, "Venue ID is required"),
+  },
+  handler: async ({ id }) => {
+    const result = await ticketbeepApi.getVenueById(id);
+    return {
+      content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+    };
+  },
+};
+
 // Geographic Tools
 /* export const scoreZipCodesTool: ToolDefinition = {
   name: "score_zipcodes",
@@ -484,6 +526,8 @@ export const artistTools = [
   getArtistStatsTool,
   getArtistMetadataTool,
 ];
+export const venueTools = [getVenuesTool, getVenueByIdTool];
+
 // export const geographicTools = [scoreZipCodesTool, getNearbyStatesTool];
 // export const discoveryTools = [discoverEventsTool, discoverPlacesTool];
 export const campaignTools = [
@@ -520,6 +564,7 @@ export const authTools = [checkUserVerificationTool];
 export const allTools: ToolDefinition[] = [
   // ...mediaTools,
   ...artistTools,
+  ...venueTools,
   // ...geographicTools,
   // ...discoveryTools,
   ...campaignTools,
