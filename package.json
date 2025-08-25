@@ -13,6 +13,8 @@
     "start:web": "node --inspect dist/http-mcp-server.js",
     "start:dev:stdio": "tsx watch src/stdio-mcp-server.ts",
     "start:dev:web": "tsx watch src/http-mcp-server.ts",
+    "test:auth": "tsx test-auth.ts",
+    "test:mcp-auth": "tsx test-mcp-auth.ts",
     "test": "jest",
     "lint": "eslint src/**/*.ts",
     "format": "prettier --write src/**/*.ts",

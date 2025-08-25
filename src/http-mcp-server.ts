@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express, { Request, Response, NextFunction } from "express";
 import { randomUUID } from "node:crypto";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
@@ -9,6 +9,7 @@ import {
   registerApiPrompts,
 } from "./tools/index.js";
 import config from "./config/index.js";
+import { tokenValidator, AuthContext } from "./auth/token-validator.js";
 
 function createMcpServer() {
   const server = new McpServer({
@@ -24,10 +25,54 @@ function createMcpServer() {
   return server;
 }
 
+// Extend Request interface to include auth context
+declare global {
+  namespace Express {
+    interface Request {
+      authContext?: AuthContext;
+    }
+  }
+}
+
 const app = express();
 app.use(express.json());
 
-app.post("/mcp", async (req: Request, res: Response) => {
+// Authentication middleware
+async function authenticateToken(req: Request, res: Response, next: NextFunction): Promise<void> {
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader) {
+    res.status(401).json({
+      jsonrpc: "2.0",
+      error: {
+        code: -32600,
+        message: "Authorization header required",
+      },
+      id: null,
+    });
+    return;
+  }
+
+  const validationResult = await tokenValidator.validateToken(authHeader);
+  
+  if (!validationResult.valid) {
+    res.status(401).json({
+      jsonrpc: "2.0",
+      error: {
+        code: -32600,
+        message: validationResult.error || "Invalid token",
+      },
+      id: null,
+    });
+    return;
+  }
+
+  // Add auth context to request
+  req.authContext = tokenValidator.getAuthContext(authHeader) || undefined;
+  next();
+}
+
+app.post("/mcp", authenticateToken, async (req: Request, res: Response) => {
   try {
     const server = createMcpServer();
     const transport = new StreamableHTTPServerTransport({
@@ -35,10 +80,13 @@ app.post("/mcp", async (req: Request, res: Response) => {
     });
 
     res.on("close", () => {
-      console.log("Request closed");
+      console.log(`Request closed for user: ${req.authContext?.userId}`);
       transport.close();
       server.close();
     });
+
+    // Log authenticated request
+    console.log(`MCP request from user: ${req.authContext?.userId}, scopes: ${req.authContext?.scopes?.join(', ')}`);
 
     await server.connect(transport);
     await transport.handleRequest(req, res, req.body);
@@ -66,7 +114,24 @@ app.get("/", (req, res) => {
     name: "ticketbeep-mcp-http",
     version: "1.0.0",
     status: "running",
-    endpoints: ["/health", "/mcp"],
+    endpoints: ["/health", "/mcp", "/auth/tokens"],
+  });
+});
+
+// Debug endpoint to list valid tokens (development only)
+app.get("/auth/tokens", (req: Request, res: Response): void => {
+  if (process.env.NODE_ENV === 'production') {
+    res.status(404).json({ error: "Not found" });
+    return;
+  }
+  
+  const tokens = tokenValidator.listTokens();
+  res.json({
+    message: "Valid test tokens (development only)",
+    tokens: tokens.map(token => ({
+      token,
+      hint: `Use as: Authorization: Bearer ${token}`
+    }))
   });
 });
 
