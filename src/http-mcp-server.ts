@@ -30,20 +30,27 @@ function createMcpServer(authContext?: string) {
           return await tool.handler(args, { authContext });
         } catch (error) {
           console.error(`Error in tool ${tool.name}:`, error);
-          
+
           // Return structured error response
           return {
             content: [
               {
                 type: "text",
-                text: JSON.stringify({
-                  error: true,
-                  message: error instanceof Error ? error.message : "Unknown error occurred",
-                  tool: tool.name,
-                  timestamp: new Date().toISOString()
-                }, null, 2)
-              }
-            ]
+                text: JSON.stringify(
+                  {
+                    error: true,
+                    message:
+                      error instanceof Error
+                        ? error.message
+                        : "Unknown error occurred",
+                    tool: tool.name,
+                    timestamp: new Date().toISOString(),
+                  },
+                  null,
+                  2
+                ),
+              },
+            ],
           };
         }
       }
@@ -90,22 +97,6 @@ async function authenticateToken(
   const token = authHeader.split(" ")[1];
   console.log("Token:", token);
 
-  /* const validationResult = await tokenValidator.validateToken(authHeader);
-
-  if (!validationResult.valid) {
-    res.status(401).json({
-      jsonrpc: "2.0",
-      error: {
-        code: -32600,
-        message: validationResult.error || "Invalid token",
-      },
-      id: null,
-    });
-    return;
-  } */
-
-  // Add auth context to request
-  // req.authContext = tokenValidator.getAuthContext(authHeader) || undefined;
   req.authContext = token;
   next();
 }

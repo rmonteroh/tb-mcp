@@ -17,8 +17,7 @@
     "test:mcp-auth": "tsx test-mcp-auth.ts",
     "test": "jest",
     "lint": "eslint src/**/*.ts",
-    "format": "prettier --write src/**/*.ts",
-    "vercel-build": "echo 'No build needed'"
+    "format": "prettier --write src/**/*.ts"
   },
   "keywords": [
     "mcp",
