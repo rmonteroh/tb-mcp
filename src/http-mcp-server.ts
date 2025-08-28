@@ -1,26 +1,35 @@
 import express, { Request, Response, NextFunction } from "express";
-import { randomUUID } from "node:crypto";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
-import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 import {
-  registerApiTools,
   registerApiResources,
   registerApiPrompts,
+  allTools,
 } from "./tools/index.js";
 import config from "./config/index.js";
 import { tokenValidator, AuthContext } from "./auth/token-validator.js";
 
-function createMcpServer() {
+function createMcpServer(authContext?: string) {
   const server = new McpServer({
     name: "ticketbeep-mcp-http-stateless",
     version: "1.0.0",
   });
 
-  // Register shared tools, resources, and prompts
-  registerApiTools(server);
+  // Register resources and prompts normally
   registerApiResources(server);
   registerApiPrompts(server);
+
+  // Register tools with auth context injection
+  allTools.forEach((tool) => {
+    server.tool(
+      tool.name,
+      tool.description,
+      tool.inputSchema,
+      async (args, _extra) => {
+        return tool.handler(args, { authContext });
+      }
+    );
+  });
 
   return server;
 }
@@ -29,7 +38,8 @@ function createMcpServer() {
 declare global {
   namespace Express {
     interface Request {
-      authContext?: AuthContext;
+      // authContext?: AuthContext;
+      authContext?: string;
     }
   }
 }
@@ -38,9 +48,13 @@ const app = express();
 app.use(express.json());
 
 // Authentication middleware
-async function authenticateToken(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function authenticateToken(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
   const authHeader = req.headers.authorization;
-  
+
   if (!authHeader) {
     res.status(401).json({
       jsonrpc: "2.0",
@@ -53,8 +67,12 @@ async function authenticateToken(req: Request, res: Response, next: NextFunction
     return;
   }
 
-  const validationResult = await tokenValidator.validateToken(authHeader);
-  
+  // Extract the token from the authorization header
+  const token = authHeader.split(" ")[1];
+  console.log("Token:", token);
+
+  /* const validationResult = await tokenValidator.validateToken(authHeader);
+
   if (!validationResult.valid) {
     res.status(401).json({
       jsonrpc: "2.0",
@@ -65,28 +83,29 @@ async function authenticateToken(req: Request, res: Response, next: NextFunction
       id: null,
     });
     return;
-  }
+  } */
 
   // Add auth context to request
-  req.authContext = tokenValidator.getAuthContext(authHeader) || undefined;
+  // req.authContext = tokenValidator.getAuthContext(authHeader) || undefined;
+  req.authContext = token;
   next();
 }
 
 app.post("/mcp", authenticateToken, async (req: Request, res: Response) => {
   try {
-    const server = createMcpServer();
+    const server = createMcpServer(req.authContext);
     const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: undefined,
     });
 
     res.on("close", () => {
-      console.log(`Request closed for user: ${req.authContext?.userId}`);
+      console.log(`Request closed for user: ${req.authContext}`);
       transport.close();
       server.close();
     });
 
     // Log authenticated request
-    console.log(`MCP request from user: ${req.authContext?.userId}, scopes: ${req.authContext?.scopes?.join(', ')}`);
+    console.log(`MCP request from user: ${req.authContext}`);
 
     await server.connect(transport);
     await transport.handleRequest(req, res, req.body);
@@ -114,24 +133,7 @@ app.get("/", (req, res) => {
     name: "ticketbeep-mcp-http",
     version: "1.0.0",
     status: "running",
-    endpoints: ["/health", "/mcp", "/auth/tokens"],
-  });
-});
-
-// Debug endpoint to list valid tokens (development only)
-app.get("/auth/tokens", (req: Request, res: Response): void => {
-  if (process.env.NODE_ENV === 'production') {
-    res.status(404).json({ error: "Not found" });
-    return;
-  }
-  
-  const tokens = tokenValidator.listTokens();
-  res.json({
-    message: "Valid test tokens (development only)",
-    tokens: tokens.map(token => ({
-      token,
-      hint: `Use as: Authorization: Bearer ${token}`
-    }))
+    endpoints: ["/health", "/mcp"],
   });
 });
 

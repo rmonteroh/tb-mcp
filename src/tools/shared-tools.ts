@@ -8,7 +8,7 @@ export interface ToolDefinition {
   inputSchema: ZodRawShape;
   handler: (
     args: any,
-    extra?: any
+    extra?: { authContext?: string }
   ) => Promise<{ content: { type: "text"; text: string }[] }>;
 }
 
@@ -18,7 +18,14 @@ export function registerToolsFromArray(
   tools: ToolDefinition[]
 ): void {
   tools.forEach((tool) => {
-    server.tool(tool.name, tool.description, tool.inputSchema, tool.handler);
+    server.tool(
+      tool.name,
+      tool.description,
+      tool.inputSchema,
+      async (args, _extra) => {
+        return tool.handler(args, undefined);
+      }
+    );
   });
 }
 
