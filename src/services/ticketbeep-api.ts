@@ -19,6 +19,7 @@ export class TicketBeepApiService {
     // Add request interceptor for authentication
     this.client.interceptors.request.use((config) => {
       console.log("config-> ", config);
+      console.log("this.authToken-> ", this.authToken);
       /* if (this.config.ticketbeep.apiKey) {
         config.headers["tb-access-key"] = this.config.ticketbeep.apiKey;
       } */
@@ -220,10 +221,15 @@ export class TicketBeepApiService {
   }
 
   async getVenueById(id: string, authToken?: string): Promise<types.Venue> {
-    return this.withAuthToken(authToken, async () => {
-      const response = await this.client.get(`/api/venues/${id}`);
-      return response.data;
-    });
+    try {
+      return this.withAuthToken(authToken, async () => {
+        const response = await this.client.get(`/api/venues/${id}`);
+        return response.data;
+      });
+    } catch (error) {
+      console.error("Error getting venue by id:", error);
+      throw error;
+    }
   }
 
   async getCampaigns(
