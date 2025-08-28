@@ -47,7 +47,7 @@ export class TicketBeepApiService {
     this.authToken = token;
   }
 
-  private withAuthToken<T>(
+  private async withAuthToken<T>(
     authToken: string | undefined,
     fn: () => Promise<T>
   ): Promise<T> {
@@ -56,14 +56,14 @@ export class TicketBeepApiService {
       this.authToken = authToken;
     }
 
-    const result = fn();
-
-    // Restore original token after the request
-    result.finally(() => {
+    try {
+      const result = await fn();
       this.authToken = originalToken;
-    });
-
-    return result;
+      return result;
+    } catch (error) {
+      this.authToken = originalToken;
+      throw error;
+    }
   }
 
   // Media Plan Endpoints

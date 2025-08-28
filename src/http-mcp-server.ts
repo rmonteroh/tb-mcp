@@ -19,14 +19,33 @@ function createMcpServer(authContext?: string) {
   registerApiResources(server);
   registerApiPrompts(server);
 
-  // Register tools with auth context injection
+  // Register tools with auth context injection and error handling
   allTools.forEach((tool) => {
     server.tool(
       tool.name,
       tool.description,
       tool.inputSchema,
       async (args, _extra) => {
-        return tool.handler(args, { authContext });
+        try {
+          return await tool.handler(args, { authContext });
+        } catch (error) {
+          console.error(`Error in tool ${tool.name}:`, error);
+          
+          // Return structured error response
+          return {
+            content: [
+              {
+                type: "text",
+                text: JSON.stringify({
+                  error: true,
+                  message: error instanceof Error ? error.message : "Unknown error occurred",
+                  tool: tool.name,
+                  timestamp: new Date().toISOString()
+                }, null, 2)
+              }
+            ]
+          };
+        }
       }
     );
   });
