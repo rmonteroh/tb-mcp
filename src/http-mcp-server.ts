@@ -1,44 +1,121 @@
-import express, { Request, Response } from "express";
-import { randomUUID } from "node:crypto";
+import express, { Request, Response, NextFunction } from "express";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
-import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 import {
-  registerApiTools,
   registerApiResources,
   registerApiPrompts,
+  allTools,
 } from "./tools/index.js";
 import config from "./config/index.js";
+import { tokenValidator, AuthContext } from "./auth/token-validator.js";
 
-function createMcpServer() {
+function createMcpServer(authContext?: string) {
   const server = new McpServer({
     name: "ticketbeep-mcp-http-stateless",
     version: "1.0.0",
   });
 
-  // Register shared tools, resources, and prompts
-  registerApiTools(server);
+  // Register resources and prompts normally
   registerApiResources(server);
   registerApiPrompts(server);
 
+  // Register tools with auth context injection and error handling
+  allTools.forEach((tool) => {
+    server.tool(
+      tool.name,
+      tool.description,
+      tool.inputSchema,
+      async (args, _extra) => {
+        try {
+          return await tool.handler(args, { authContext });
+        } catch (error) {
+          console.error(`Error in tool ${tool.name}:`, error);
+
+          // Return structured error response
+          return {
+            content: [
+              {
+                type: "text",
+                text: JSON.stringify(
+                  {
+                    error: true,
+                    message:
+                      error instanceof Error
+                        ? error.message
+                        : "Unknown error occurred",
+                    tool: tool.name,
+                    timestamp: new Date().toISOString(),
+                  },
+                  null,
+                  2
+                ),
+              },
+            ],
+          };
+        }
+      }
+    );
+  });
+
   return server;
+}
+
+// Extend Request interface to include auth context
+declare global {
+  namespace Express {
+    interface Request {
+      // authContext?: AuthContext;
+      authContext?: string;
+    }
+  }
 }
 
 const app = express();
 app.use(express.json());
 
-app.post("/mcp", async (req: Request, res: Response) => {
+// Authentication middleware
+async function authenticateToken(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
+    res.status(401).json({
+      jsonrpc: "2.0",
+      error: {
+        code: -32600,
+        message: "Authorization header required",
+      },
+      id: null,
+    });
+    return;
+  }
+
+  // Extract the token from the authorization header
+  const token = authHeader.split(" ")[1];
+  console.log("Token:", token);
+
+  req.authContext = token;
+  next();
+}
+
+app.post("/mcp", authenticateToken, async (req: Request, res: Response) => {
   try {
-    const server = createMcpServer();
+    const server = createMcpServer(req.authContext);
     const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: undefined,
     });
 
     res.on("close", () => {
-      console.log("Request closed");
+      console.log(`Request closed for user: ${req.authContext}`);
       transport.close();
       server.close();
     });
+
+    // Log authenticated request
+    console.log(`MCP request from user: ${req.authContext}`);
 
     await server.connect(transport);
     await transport.handleRequest(req, res, req.body);

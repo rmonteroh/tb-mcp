@@ -2,6 +2,7 @@ import { z } from "zod";
 import { ToolDefinition } from "./shared-tools.js";
 import { ticketbeepApi } from "../services/ticketbeep-api.js";
 import { filtersAvailableContext } from "../utils/filters-available.js";
+import { extractTokenFromAuthContext } from "./utils.js";
 
 // Media Plan Tools
 /* export const generateMediaPlanTool: ToolDefinition = {
@@ -59,8 +60,9 @@ export const searchArtistsTool: ToolDefinition = {
   inputSchema: {
     name: z.string().min(1, "Artist name is required"),
   },
-  handler: async ({ name }) => {
-    const result = await ticketbeepApi.searchArtists(name);
+  handler: async ({ name }, extra) => {
+    const token = extractTokenFromAuthContext(extra);
+    const result = await ticketbeepApi.searchArtists(name, token);
     return {
       content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
     };
@@ -74,8 +76,9 @@ export const getArtistByIdTool: ToolDefinition = {
   inputSchema: {
     id: z.string().min(1, "Artist ID is required"),
   },
-  handler: async ({ id }) => {
-    const result = await ticketbeepApi.getArtistById(id);
+  handler: async ({ id }, extra) => {
+    const token = extractTokenFromAuthContext(extra);
+    const result = await ticketbeepApi.getArtistById(id, token);
     return {
       content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
     };
@@ -92,8 +95,9 @@ export const getArtistStatsTool: ToolDefinition = {
       .describe("The social media platform of the artist"),
     artistId: z.string().min(1, "Artist ID is required"),
   },
-  handler: async ({ domain, artistId }) => {
-    const result = await ticketbeepApi.getArtistStats(domain, artistId);
+  handler: async ({ domain, artistId }, extra) => {
+    const token = extractTokenFromAuthContext(extra);
+    const result = await ticketbeepApi.getArtistStats(domain, artistId, token);
     return {
       content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
     };
@@ -107,8 +111,9 @@ export const getArtistMetadataTool: ToolDefinition = {
   inputSchema: {
     id: z.string().min(1, "Artist ID is required"),
   },
-  handler: async ({ id }) => {
-    const result = await ticketbeepApi.getArtistMetadata(id);
+  handler: async ({ id }, extra) => {
+    const token = extractTokenFromAuthContext(extra);
+    const result = await ticketbeepApi.getArtistMetadata(id, token);
     return {
       content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
     };
@@ -134,8 +139,15 @@ export const getVenuesTool: ToolDefinition = {
     filter: z.string().optional(),
     sort: z.string().optional().default("name"),
   },
-  handler: async ({ page, perPage, filter, sort }) => {
-    const result = await ticketbeepApi.getVenues(page, perPage, filter, sort);
+  handler: async ({ page, perPage, filter, sort }, extra) => {
+    const token = extractTokenFromAuthContext(extra);
+    const result = await ticketbeepApi.getVenues(
+      page,
+      perPage,
+      filter,
+      sort,
+      token
+    );
     return {
       content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
     };
@@ -149,8 +161,9 @@ export const getVenueByIdTool: ToolDefinition = {
   inputSchema: {
     id: z.string().min(1, "Venue ID is required"),
   },
-  handler: async ({ id }) => {
-    const result = await ticketbeepApi.getVenueById(id);
+  handler: async ({ id }, extra) => {
+    const token = extractTokenFromAuthContext(extra);
+    const result = await ticketbeepApi.getVenueById(id, token);
     return {
       content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
     };
@@ -274,12 +287,14 @@ export const getCampaignsTool: ToolDefinition = {
     filter: z.string().optional(),
     sort: z.string().optional().default("name"),
   },
-  handler: async ({ page, perPage, filter, sort }) => {
+  handler: async ({ page, perPage, filter, sort }, extra) => {
+    const token = extractTokenFromAuthContext(extra);
     const result = await ticketbeepApi.getCampaigns(
       page,
       perPage,
       filter,
-      sort
+      sort,
+      token
     );
     return {
       content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
@@ -293,8 +308,9 @@ export const getCampaignByIdTool: ToolDefinition = {
   inputSchema: {
     id: z.string().min(1, "Campaign ID is required"),
   },
-  handler: async ({ id }) => {
-    const result = await ticketbeepApi.getCampaignById(id);
+  handler: async ({ id }, extra) => {
+    const token = extractTokenFromAuthContext(extra);
+    const result = await ticketbeepApi.getCampaignById(id, token);
     return {
       content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
     };
@@ -392,8 +408,9 @@ export const getAverageTicketPriceTool: ToolDefinition = {
   inputSchema: {
     year: z.number().min(2000).max(2100, "Year must be between 2000 and 2100"),
   },
-  handler: async ({ year }) => {
-    const result = await ticketbeepApi.getAverageTicketPrice(year);
+  handler: async ({ year }, extra) => {
+    const token = extractTokenFromAuthContext(extra);
+    const result = await ticketbeepApi.getAverageTicketPrice(year, token);
     return {
       content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
     };
@@ -407,8 +424,9 @@ export const getPromotersTool: ToolDefinition = {
   inputSchema: {
     year: z.number().min(2000).max(2100, "Year must be between 2000 and 2100"),
   },
-  handler: async ({ year }) => {
-    const result = await ticketbeepApi.getPromoters(year);
+  handler: async ({ year }, extra) => {
+    const token = extractTokenFromAuthContext(extra);
+    const result = await ticketbeepApi.getPromoters(year, token);
     return {
       content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
     };
@@ -422,8 +440,9 @@ export const getTopCitiesTool: ToolDefinition = {
     year: z.number().min(2000).max(2100, "Year must be between 2000 and 2100"),
     slice: z.number().min(1, "Slice must be greater than 0"),
   },
-  handler: async ({ year, slice }) => {
-    const result = await ticketbeepApi.getTopCities(year, slice);
+  handler: async ({ year, slice }, extra) => {
+    const token = extractTokenFromAuthContext(extra);
+    const result = await ticketbeepApi.getTopCities(year, slice, token);
     return {
       content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
     };
@@ -438,8 +457,9 @@ export const getTopGenresTool: ToolDefinition = {
     year: z.number().min(2000).max(2100, "Year must be between 2000 and 2100"),
     slice: z.number().min(1, "Slice must be greater than 0"),
   },
-  handler: async ({ year, slice }) => {
-    const result = await ticketbeepApi.getTopGenres(year, slice);
+  handler: async ({ year, slice }, extra) => {
+    const token = extractTokenFromAuthContext(extra);
+    const result = await ticketbeepApi.getTopGenres(year, slice, token);
     return {
       content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
     };
@@ -452,8 +472,9 @@ export const getGrossRevenueTool: ToolDefinition = {
   inputSchema: {
     year: z.number().min(2000).max(2100, "Year must be between 2000 and 2100"),
   },
-  handler: async ({ year }) => {
-    const result = await ticketbeepApi.getGrossRevenue(year);
+  handler: async ({ year }, extra) => {
+    const token = extractTokenFromAuthContext(extra);
+    const result = await ticketbeepApi.getGrossRevenue(year, token);
     return {
       content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
     };
@@ -466,8 +487,9 @@ export const getTrafficShowsTool: ToolDefinition = {
   inputSchema: {
     year: z.number().min(2000).max(2100, "Year must be between 2000 and 2100"),
   },
-  handler: async ({ year }) => {
-    const result = await ticketbeepApi.getTrafficShows(year);
+  handler: async ({ year }, extra) => {
+    const token = extractTokenFromAuthContext(extra);
+    const result = await ticketbeepApi.getTrafficShows(year, token);
     return {
       content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
     };
@@ -481,8 +503,9 @@ export const checkUserVerificationTool: ToolDefinition = {
   inputSchema: {
     email: z.string().email("Valid email is required"),
   },
-  handler: async ({ email }) => {
-    const result = await ticketbeepApi.checkUserVerification(email);
+  handler: async ({ email }, extra) => {
+    const token = extractTokenFromAuthContext(extra);
+    const result = await ticketbeepApi.checkUserVerification(email, token);
     return {
       content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
     };
@@ -503,12 +526,14 @@ export const getTalentBuyersTool: ToolDefinition = {
     filter: z.string().optional(),
     sort: z.string().optional().default("name"),
   },
-  handler: async ({ page, perPage, filter, sort }) => {
+  handler: async ({ page, perPage, filter, sort }, extra) => {
+    const token = extractTokenFromAuthContext(extra);
     const result = await ticketbeepApi.getTalentBuyers(
       page,
       perPage,
       filter,
-      sort
+      sort,
+      token
     );
     return {
       content: [{ type: "text", text: JSON.stringify(result, null, 2) }],

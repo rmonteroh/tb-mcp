@@ -4,6 +4,7 @@ import * as types from "../types/index.js";
 
 export class TicketBeepApiService {
   private client: AxiosInstance;
+  private authToken?: string;
 
   constructor() {
     this.client = axios.create({
@@ -18,17 +19,13 @@ export class TicketBeepApiService {
     // Add request interceptor for authentication
     this.client.interceptors.request.use((config) => {
       console.log("config-> ", config);
+      console.log("this.authToken-> ", this.authToken);
       /* if (this.config.ticketbeep.apiKey) {
-        config.headers["ACCESS-KEY"] = this.config.ticketbeep.apiKey;
-      } */
-      if (this.config.ticketbeep.apiKey) {
         config.headers["tb-access-key"] = this.config.ticketbeep.apiKey;
-      }
-      /* const authToken = await this.getAuthorizationToken();
-      console.log("authToken", authToken);
-      if (authToken) {
-        config.headers["Authorization"] = `Bearer ${authToken.token}`;
       } */
+      if (this.authToken) {
+        config.headers["Authorization"] = `Bearer ${this.authToken}`;
+      }
       return config;
     });
 
@@ -46,53 +43,91 @@ export class TicketBeepApiService {
     return config;
   }
 
-  // Media Plan Endpoints
-  async generateMediaPlan(
-    data: types.GenerateMediaPlanDto
-  ): Promise<types.CampaignResponse> {
-    const response = await this.client.post("/api/media-plan/generate", data);
-    return response.data;
+  setAuthToken(token?: string) {
+    this.authToken = token;
   }
 
-  async searchArtists(name?: string): Promise<types.ArtistSearchResponse> {
+  private async withAuthToken<T>(
+    authToken: string | undefined,
+    fn: () => Promise<T>
+  ): Promise<T> {
+    const originalToken = this.authToken;
+    if (authToken) {
+      this.authToken = authToken;
+    }
+
     try {
-      // const authToken = await this.getAuthorizationToken();
-      // console.log("authToken", authToken);
-      // console.log("headers", this.config.ticketbeep.apiKey);
-      const params = name ? { name } : {};
-      const response = await this.client.get("/api/media-plan/artists", {
-        params,
-        // headers: {
-        //   Authorization: `Bearer ${authToken.token}`,
-        // },
-      });
+      const result = await fn();
+      this.authToken = originalToken;
+      return result;
+    } catch (error) {
+      this.authToken = originalToken;
+      throw error;
+    }
+  }
+
+  // Media Plan Endpoints
+  async generateMediaPlan(
+    data: types.GenerateMediaPlanDto,
+    authToken?: string
+  ): Promise<types.CampaignResponse> {
+    return this.withAuthToken(authToken, async () => {
+      const response = await this.client.post("/api/media-plan/generate", data);
       return response.data;
+    });
+  }
+
+  async searchArtists(
+    name?: string,
+    authToken?: string
+  ): Promise<types.ArtistSearchResponse> {
+    try {
+      return this.withAuthToken(authToken, async () => {
+        const params = name ? { name } : {};
+        const response = await this.client.get("/api/media-plan/artists", {
+          params,
+        });
+        return response.data;
+      });
     } catch (error) {
       console.error("Error searching artists:", error);
       throw error;
     }
   }
 
-  async getArtistById(id: string): Promise<types.ArtistByIdResponse> {
-    const response = await this.client.get(`/api/media-plan/artist/${id}`);
-    return response.data;
+  async getArtistById(
+    id: string,
+    authToken?: string
+  ): Promise<types.ArtistByIdResponse> {
+    return this.withAuthToken(authToken, async () => {
+      const response = await this.client.get(`/api/media-plan/artist/${id}`);
+      return response.data;
+    });
   }
 
   async getArtistStats(
     domain: string,
-    artistId: string
+    artistId: string,
+    authToken?: string
   ): Promise<types.ArtistStatsData> {
-    const response = await this.client.get("/api/media-plan/artist-stats", {
-      params: { domain, artistId },
+    return this.withAuthToken(authToken, async () => {
+      const response = await this.client.get("/api/media-plan/artist-stats", {
+        params: { domain, artistId },
+      });
+      return response.data;
     });
-    return response.data;
   }
 
-  async getArtistMetadata(id: string): Promise<types.ArtistMetadata> {
-    const response = await this.client.get(
-      `/api/media-plan/artist-metadata/${id}`
-    );
-    return response.data;
+  async getArtistMetadata(
+    id: string,
+    authToken?: string
+  ): Promise<types.ArtistMetadata> {
+    return this.withAuthToken(authToken, async () => {
+      const response = await this.client.get(
+        `/api/media-plan/artist-metadata/${id}`
+      );
+      return response.data;
+    });
   }
 
   async scoreZipCodes(
@@ -169,44 +204,62 @@ export class TicketBeepApiService {
     page: number,
     perPage: number,
     filter: string,
-    sort: string
+    sort: string,
+    authToken?: string
   ): Promise<{ items: types.Venue[] } & types.ListResponse> {
     try {
-      const response = await this.client.get("/api/venues", {
-        params: { page, perPage, filter, sort },
+      return this.withAuthToken(authToken, async () => {
+        const response = await this.client.get("/api/venues", {
+          params: { page, perPage, filter, sort },
+        });
+        return response.data;
       });
-      return response.data;
     } catch (error) {
       console.error("Error getting venues:", error);
       throw error;
     }
   }
 
-  async getVenueById(id: string): Promise<types.Venue> {
-    const response = await this.client.get(`/api/venues/${id}`);
-    return response.data;
+  async getVenueById(id: string, authToken?: string): Promise<types.Venue> {
+    try {
+      return this.withAuthToken(authToken, async () => {
+        const response = await this.client.get(`/api/venues/${id}`);
+        return response.data;
+      });
+    } catch (error) {
+      console.error("Error getting venue by id:", error);
+      throw error;
+    }
   }
 
   async getCampaigns(
     page: number,
     perPage: number,
     filter: string,
-    sort: string
+    sort: string,
+    authToken?: string
   ): Promise<{ items: types.Campaign[] } & types.ListResponse> {
     try {
-      const response = await this.client.get("/api/campaign", {
-        params: { page, perPage, filter, sort },
+      return this.withAuthToken(authToken, async () => {
+        const response = await this.client.get("/api/campaign", {
+          params: { page, perPage, filter, sort },
+        });
+        return response.data;
       });
-      return response.data;
     } catch (error) {
       console.error("Error getting campaigns:", error);
       throw error;
     }
   }
 
-  async getCampaignById(id: string): Promise<types.Campaign> {
-    const response = await this.client.get(`/api/campaign/${id}`);
-    return response.data;
+  async getCampaignById(
+    id: string,
+    authToken?: string
+  ): Promise<types.Campaign> {
+    return this.withAuthToken(authToken, async () => {
+      const response = await this.client.get(`/api/campaign/${id}`);
+      return response.data;
+    });
   }
 
   async updateCampaign(
@@ -222,62 +275,80 @@ export class TicketBeepApiService {
 
   // Dashboard Endpoints
   async getAverageTicketPrice(
-    year: number
+    year: number,
+    authToken?: string
   ): Promise<types.QueryDashboardAverageTicketPriceResponseContentDto> {
-    const response = await this.client.get(
-      "/api/dashboard/average-ticket-price",
-      {
-        params: { year },
-      }
-    );
-    return response.data;
+    return this.withAuthToken(authToken, async () => {
+      const response = await this.client.get(
+        "/api/dashboard/average-ticket-price",
+        {
+          params: { year },
+        }
+      );
+      return response.data;
+    });
   }
 
   async getPromoters(
-    year: number
+    year: number,
+    authToken?: string
   ): Promise<types.QueryDashboardPromoterResponseContentDto> {
-    const response = await this.client.get("/api/dashboard/promoters", {
-      params: { year },
+    return this.withAuthToken(authToken, async () => {
+      const response = await this.client.get("/api/dashboard/promoters", {
+        params: { year },
+      });
+      return response.data;
     });
-    return response.data;
   }
 
   async getTopCities(
     year: number,
-    slice: number
+    slice: number,
+    authToken?: string
   ): Promise<types.QueryDashboardTopCitiesResponseContentDto> {
-    const response = await this.client.get("/api/dashboard/top-cities", {
-      params: { year, slice },
+    return this.withAuthToken(authToken, async () => {
+      const response = await this.client.get("/api/dashboard/top-cities", {
+        params: { year, slice },
+      });
+      return response.data;
     });
-    return response.data;
   }
 
   async getTopGenres(
     year: number,
-    slice: number
+    slice: number,
+    authToken?: string
   ): Promise<types.QueryDashboardTopGenresResponseContentDto> {
-    const response = await this.client.get("/api/dashboard/top-genres", {
-      params: { year, slice },
+    return this.withAuthToken(authToken, async () => {
+      const response = await this.client.get("/api/dashboard/top-genres", {
+        params: { year, slice },
+      });
+      return response.data;
     });
-    return response.data;
   }
 
   async getGrossRevenue(
-    year: number
+    year: number,
+    authToken?: string
   ): Promise<types.QueryDashboardGrossRevenueResponseContentDto> {
-    const response = await this.client.get("/api/dashboard/gross-revenue", {
-      params: { year },
+    return this.withAuthToken(authToken, async () => {
+      const response = await this.client.get("/api/dashboard/gross-revenue", {
+        params: { year },
+      });
+      return response.data;
     });
-    return response.data;
   }
 
   async getTrafficShows(
-    year: number
+    year: number,
+    authToken?: string
   ): Promise<types.QueryDashboardTrafficShowsResponseContentDto> {
-    const response = await this.client.get("/api/dashboard/traffic-shows", {
-      params: { year },
+    return this.withAuthToken(authToken, async () => {
+      const response = await this.client.get("/api/dashboard/traffic-shows", {
+        params: { year },
+      });
+      return response.data;
     });
-    return response.data;
   }
 
   // Activity Endpoints
@@ -338,15 +409,18 @@ export class TicketBeepApiService {
 
   // Auth Endpoints
   async checkUserVerification(
-    email: string
+    email: string,
+    authToken?: string
   ): Promise<types.UserVerificationResponse> {
-    const response = await this.client.get(
-      "/api/auth/check-user-verification",
-      {
-        params: { email },
-      }
-    );
-    return response.data;
+    return this.withAuthToken(authToken, async () => {
+      const response = await this.client.get(
+        "/api/auth/check-user-verification",
+        {
+          params: { email },
+        }
+      );
+      return response.data;
+    });
   }
 
   // Talent Buyers Endpoints
@@ -354,12 +428,15 @@ export class TicketBeepApiService {
     page: number,
     perPage: number,
     filter: string,
-    sort: string
+    sort: string,
+    authToken?: string
   ) {
-    const response = await this.client.get("/api/talent-buyers", {
-      params: { page, perPage, filter, sort },
+    return this.withAuthToken(authToken, async () => {
+      const response = await this.client.get("/api/talent-buyers", {
+        params: { page, perPage, filter, sort },
+      });
+      return response.data;
     });
-    return response.data;
   }
 }
 

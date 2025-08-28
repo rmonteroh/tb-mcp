@@ -5,7 +5,9 @@
  * @param data - The data to be serialized as JSON
  * @returns Formatted response object for MCP tools
  */
-export function createJsonResponse(data: any): { content: { type: "text"; text: string }[] } {
+export function createJsonResponse(data: any): {
+  content: { type: "text"; text: string }[];
+} {
   return {
     content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
   };
@@ -16,7 +18,9 @@ export function createJsonResponse(data: any): { content: { type: "text"; text: 
  * @param message - The success message to display
  * @returns Formatted response object for MCP tools
  */
-export function createSuccessResponse(message: string): { content: { type: "text"; text: string }[] } {
+export function createSuccessResponse(message: string): {
+  content: { type: "text"; text: string }[];
+} {
   return {
     content: [{ type: "text", text: message }],
   };
@@ -27,7 +31,9 @@ export function createSuccessResponse(message: string): { content: { type: "text
  * @param error - The error message or object
  * @returns Formatted error response object
  */
-export function createErrorResponse(error: string | Error): { content: { type: "text"; text: string }[] } {
+export function createErrorResponse(error: string | Error): {
+  content: { type: "text"; text: string }[];
+} {
   const errorMessage = error instanceof Error ? error.message : error;
   return {
     content: [{ type: "text", text: `Error: ${errorMessage}` }],
@@ -49,8 +55,11 @@ export function formatDateToString(date: string | Date): string {
  * @param requiredFields - Array of required field names
  * @throws Error if any required field is missing
  */
-export function validateRequiredFields(data: Record<string, any>, requiredFields: string[]): void {
-  const missingFields = requiredFields.filter(field => {
+export function validateRequiredFields(
+  data: Record<string, any>,
+  requiredFields: string[]
+): void {
+  const missingFields = requiredFields.filter((field) => {
     const value = data[field];
     return value === undefined || value === null || value === "";
   });
@@ -67,15 +76,19 @@ export function validateRequiredFields(data: Record<string, any>, requiredFields
  * @param maxYear - Maximum allowed year (default: current year + 10)
  * @returns Validated year number
  */
-export function validateYear(year: number, minYear: number = 2000, maxYear: number = new Date().getFullYear() + 10): number {
+export function validateYear(
+  year: number,
+  minYear: number = 2000,
+  maxYear: number = new Date().getFullYear() + 10
+): number {
   if (typeof year !== "number" || isNaN(year)) {
     throw new Error("Year must be a valid number");
   }
-  
+
   if (year < minYear || year > maxYear) {
     throw new Error(`Year must be between ${minYear} and ${maxYear}`);
   }
-  
+
   return year;
 }
 
@@ -85,10 +98,13 @@ export function validateYear(year: number, minYear: number = 2000, maxYear: numb
  * @param pageSize - Items per page
  * @returns Validated pagination object
  */
-export function validatePagination(page?: number, pageSize?: number): { page: number; pageSize: number } {
+export function validatePagination(
+  page?: number,
+  pageSize?: number
+): { page: number; pageSize: number } {
   const validatedPage = Math.max(1, page || 1);
   const validatedPageSize = Math.min(100, Math.max(1, pageSize || 20));
-  
+
   return {
     page: validatedPage,
     pageSize: validatedPageSize,
@@ -130,7 +146,7 @@ export function createApiErrorResponse(
       ...(details && { details }),
     },
   };
-  
+
   return createJsonResponse(errorResponse);
 }
 
@@ -152,7 +168,9 @@ export function truncateString(str: string, maxLength: number = 100): string {
  * @param operation - Description of the operation being performed
  * @returns Formatted loading response
  */
-export function createLoadingResponse(operation: string): { content: { type: "text"; text: string }[] } {
+export function createLoadingResponse(operation: string): {
+  content: { type: "text"; text: string }[];
+} {
   return {
     content: [{ type: "text", text: `Processing ${operation}...` }],
   };
@@ -173,9 +191,18 @@ export function formatNumber(num: number): string {
  * @param currency - Currency code (default: USD)
  * @returns Formatted currency string
  */
-export function formatCurrency(amount: number, currency: string = "USD"): string {
+export function formatCurrency(
+  amount: number,
+  currency: string = "USD"
+): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: currency,
   }).format(amount);
+}
+
+export function extractTokenFromAuthContext(extra?: {
+  authContext?: string;
+}): string {
+  return extra?.authContext || "";
 }
