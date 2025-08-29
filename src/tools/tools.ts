@@ -285,7 +285,7 @@ export const getCampaignsTool: ToolDefinition = {
       .max(100, "Page size must be less than 100")
       .default(10),
     filter: z.string().optional(),
-    sort: z.string().optional().default("name"),
+    sort: z.string().optional(),
   },
   handler: async ({ page, perPage, filter, sort }, extra) => {
     const token = extractTokenFromAuthContext(extra);
