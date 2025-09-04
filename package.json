@@ -9,12 +9,7 @@
     "start": "node dist/index.js",
     "start:inspector": "npx -y @modelcontextprotocol/inspector node dist/index.js",
     "start:inspector:no-auth": "npx -y @modelcontextprotocol/inspector DANGEROUSLY_OMIT_AUTH=true node dist/index.js",
-    "start:stdio": "node --inspect dist/stdio-mcp-server.js",
-    "start:web": "node --inspect dist/http-mcp-server.js",
-    "start:dev:stdio": "tsx watch src/stdio-mcp-server.ts",
-    "start:dev:web": "tsx watch src/http-mcp-server.ts",
-    "test:auth": "tsx test-auth.ts",
-    "test:mcp-auth": "tsx test-mcp-auth.ts",
+    "dev": "tsx watch src/index.ts",
     "test": "jest",
     "lint": "eslint src/**/*.ts",
     "format": "prettier --write src/**/*.ts"

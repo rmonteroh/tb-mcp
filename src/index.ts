@@ -1,6 +1,150 @@
-import { startMcpServer } from "./stdio-mcp-server.js";
+import express, { Request, Response, NextFunction } from "express";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { allTools } from "./tools/index.js";
+import config from "./config/index.js";
 
-startMcpServer().catch((error) => {
-  console.error("Failed to start TicketBeep MCP Server:", error);
-  process.exit(1);
+function createMcpServer(authContext?: string) {
+  const server = new McpServer({
+    name: "ticketbeep-mcp-http-stateless",
+    version: "1.0.0",
+  });
+
+  // Register tools with auth context injection and error handling
+  allTools.forEach((tool) => {
+    server.tool(
+      tool.name,
+      tool.description,
+      tool.inputSchema,
+      async (args, _extra) => {
+        try {
+          return await tool.handler(args, { authContext });
+        } catch (error) {
+          console.error(`Error in tool ${tool.name}:`, error);
+
+          // Return structured error response
+          return {
+            content: [
+              {
+                type: "text",
+                text: JSON.stringify(
+                  {
+                    error: true,
+                    message:
+                      error instanceof Error
+                        ? error.message
+                        : "Unknown error occurred",
+                    tool: tool.name,
+                    timestamp: new Date().toISOString(),
+                  },
+                  null,
+                  2
+                ),
+              },
+            ],
+          };
+        }
+      }
+    );
+  });
+
+  return server;
+}
+
+// Extend Request interface to include auth context
+declare global {
+  namespace Express {
+    interface Request {
+      // authContext?: AuthContext;
+      authContext?: string;
+    }
+  }
+}
+
+const app = express();
+app.use(express.json());
+
+// Authentication middleware
+async function authenticateToken(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
+    res.status(401).json({
+      jsonrpc: "2.0",
+      error: {
+        code: -32600,
+        message: "Authorization header required",
+      },
+      id: null,
+    });
+    return;
+  }
+
+  // Extract the token from the authorization header
+  const token = authHeader.split(" ")[1];
+  console.log("Token:", token);
+
+  req.authContext = token;
+  next();
+}
+
+app.post("/mcp", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const server = createMcpServer(req.authContext);
+    const transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: undefined,
+    });
+
+    res.on("close", () => {
+      console.log(`Request closed for user: ${req.authContext}`);
+      transport.close();
+      server.close();
+    });
+
+    // Log authenticated request
+    console.log(`MCP request from user: ${req.authContext}`);
+
+    await server.connect(transport);
+    await transport.handleRequest(req, res, req.body);
+  } catch (error) {
+    console.error("Error processing MCP request:", error);
+    res.status(500).json({
+      jsonrpc: "2.0",
+      error: {
+        code: -32603,
+        message: "Internal Server Error",
+      },
+      id: null,
+    });
+  }
+});
+
+// Health check endpoint (optional, for monitoring)
+app.get("/health", (req, res) => {
+  res.json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
+// Root endpoint for basic info
+app.get("/", (req, res) => {
+  res.json({
+    name: "ticketbeep-mcp-http",
+    version: "1.0.0",
+    status: "running",
+    endpoints: ["/health", "/mcp"],
+  });
+});
+
+const port = config.mcp.port;
+
+app.listen(port, () => {
+  console.log(`MCP server running on port ${port}`);
+  if (config.ticketbeep.apiKey) {
+    console.log("TicketBeep API key authentication enabled");
+  } else {
+    console.log("No TicketBeep API key configured - authentication disabled");
+  }
 });

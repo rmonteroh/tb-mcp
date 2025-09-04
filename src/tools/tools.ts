@@ -1,7 +1,6 @@
 import { z } from "zod";
-import { ToolDefinition } from "./shared-tools.js";
+import { ToolDefinition } from "./types.js";
 import { ticketbeepApi } from "../services/ticketbeep-api.js";
-import { filtersAvailableContext } from "../utils/filters-available.js";
 import { extractTokenFromAuthContext } from "./utils.js";
 
 // Media Plan Tools
@@ -587,17 +586,17 @@ export const authTools = [checkUserVerificationTool];
 
 // Export all tools as a single array
 export const allTools: ToolDefinition[] = [
-  // ...mediaTools,
   ...artistTools,
   ...venueTools,
-  // ...geographicTools,
-  // ...discoveryTools,
   ...campaignTools,
   ...billboardTools,
-  // ...radioTools,
   ...analyticsTools,
   ...activityTools,
-  // ...paymentTools,
   ...authTools,
+  // ...mediaTools,
+  // ...discoveryTools,
+  // ...radioTools,
+  // ...paymentTools,
+  // ...geographicTools,
   getTalentBuyersTool,
 ];
