@@ -7,6 +7,7 @@ export interface ToolDefinition {
   inputSchema: ZodRawShape;
   handler: (
     args: any,
-    extra?: { authContext?: string }
+    //  extra?: { authContext?: string } // TODO: Fix type to RequestHandlerExtra<any, any>
+    extra?: any
   ) => Promise<{ content: { type: "text"; text: string }[] }>;
 }

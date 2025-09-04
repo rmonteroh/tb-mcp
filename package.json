@@ -5,7 +5,8 @@
   "main": "dist/http-mcp-server.js",
   "type": "module",
   "scripts": {
-    "build": "tsc && cp .env dist/ 2>/dev/null || echo 'No .env file to copy'",
+    "build": "rm -rf dist && tsc ",
+    "build:dev": "rm -rf dist && tsc && cp .env dist/ 2>/dev/null || echo 'No .env file to copy'",
     "start": "node dist/index.js",
     "start:inspector": "npx -y @modelcontextprotocol/inspector node dist/index.js",
     "start:inspector:no-auth": "npx -y @modelcontextprotocol/inspector DANGEROUSLY_OMIT_AUTH=true node dist/index.js",

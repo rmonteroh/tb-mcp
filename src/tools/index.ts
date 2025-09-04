@@ -2,7 +2,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 // Import tools from the main api.tools file (working version)
-import { apiTools, registerApiTools as apiRegisterTools } from "./api.tools.js";
+import { apiTools, registerApiTools as apiRegisterTools } from "./utils.js";
 
 // Export tools for direct access
 export const allTools = apiTools;

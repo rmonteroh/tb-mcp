@@ -44,10 +44,18 @@ export interface VenueData {
 }
 
 export interface MediaPlanPerPhaseBudgetItem {
-  phase: 'ON_SALE' | 'SUPPORT' | 'PUSH' | 'COUNTDOWN';
+  phase: "ON_SALE" | "SUPPORT" | "PUSH" | "COUNTDOWN";
   percentage: number;
   budget: number;
-  channel: 'Meta' | 'Google' | 'Tiktok' | 'Spotify' | 'OOH' | 'Geo' | 'Influencer' | 'Analog';
+  channel:
+    | "Meta"
+    | "Google"
+    | "Tiktok"
+    | "Spotify"
+    | "OOH"
+    | "Geo"
+    | "Influencer"
+    | "Analog";
   days: number;
   spendPerDay: number;
   startDate: string;
@@ -530,7 +538,7 @@ export interface GooglePlaceDto {
   regularOpeningHours: GooglePlaceOpeningHoursDto;
   utcOffsetMinutes: number;
   adrFormatAddress?: string;
-  businessStatus?: 'OPERATIONAL' | 'CLOSED_TEMPORARILY' | 'CLOSED_PERMANENTLY';
+  businessStatus?: "OPERATIONAL" | "CLOSED_TEMPORARILY" | "CLOSED_PERMANENTLY";
   userRatingCount?: number;
   iconMaskBaseUri?: string;
   iconBackgroundColor?: string;
@@ -692,13 +700,13 @@ export interface ArtistMetadata {
 export interface GenericFilterDto {
   field: string;
   value: string | number | boolean | null;
-  operator: 'Eq' | 'NotEq' | 'Gt' | 'Gte' | 'Lt' | 'Lte' | 'Like';
+  operator: "Eq" | "NotEq" | "Gt" | "Gte" | "Lt" | "Lte" | "Like";
 }
 
 export interface GenericFilterGroupDto {
   name: string;
   filters: GenericFilterDto[];
-  operator?: 'And' | 'Or';
+  operator?: "And" | "Or";
 }
 
 export interface GenericSortingDto {
@@ -713,15 +721,25 @@ export interface QueryBillboardsRequestBodyDto {
   pageSize?: number;
 }
 
-export type BillboardUnitType = 
-  | 'Airport' | 'Alternative' | 'Billboard' | 'Retail/Venues' 
-  | 'Street Furniture' | 'Transit' | 'Wallscape' | 'Wildposting' | 'Windowscape';
+export type BillboardUnitType =
+  | "Airport"
+  | "Alternative"
+  | "Billboard"
+  | "Retail/Venues"
+  | "Street Furniture"
+  | "Transit"
+  | "Wallscape"
+  | "Wildposting"
+  | "Windowscape";
 
-export type BillboardScreenType = 'Static' | 'Digital';
+export type BillboardScreenType = "Static" | "Digital";
 
-export type BillboardOrientation = 'CR' | 'LHR' | 'RHR';
+export type BillboardOrientation = "CR" | "LHR" | "RHR";
 
-export type BillboardAttribution = 'Has attribution' | 'No attribution' | 'Unknown';
+export type BillboardAttribution =
+  | "Has attribution"
+  | "No attribution"
+  | "Unknown";
 
 export interface ZipCodeDto {
   id?: string;
@@ -772,22 +790,61 @@ export interface QueryAnalogRadioRequestBodyDto {
   pageSize?: number;
 }
 
-export type AnalogRadioFormat = 
-  | 'Contemporary Christian' | 'Gospel' | 'Religious' | 'Christian Adult Contemporary'
-  | 'Southern Gospel' | 'Contemporary Inspirational' | 'Spanish Religious'
-  | 'Pop Contemporary Hit Radio' | 'Adult Contemporary' | 'Other' | 'World Ethnic'
-  | 'Variety' | 'Adult Standards/MOR' | 'Spanish Variety' | 'Latino Urban'
-  | 'Spanish Contemporary' | 'Spanish Tropical' | 'Adult Hits' | 'Country'
-  | 'Spanish Contemporary Christian' | 'Hot Adult Contemporary' | 'Modern Adult Contemporary'
-  | 'Soft Adult Contemporary' | 'Urban Contemporary' | 'Rhythmic Contemporary Hit Radio'
-  | 'Classic Rock' | 'Album Oriented Rock' | 'Active Rock' | 'Mainstream Rock'
-  | 'Rhythmic AC' | 'Classical' | 'Alternative' | 'Album Adult Alternative'
-  | 'Urban Adult Contemporary' | 'Rhythmic Oldies' | 'Urban Oldies' | 'Jazz'
-  | 'New AC (NAC)/Smooth Jazz' | 'New Country' | 'Classic Country' | 'Blues'
-  | 'Easy Listening' | 'Holiday Music' | 'Oldies' | 'Nostalgia' | '80\'s Hits'
-  | 'Classic Hits' | 'Talk/Personality' | 'Spanish Adult Hits'
-  | 'Spanish Hot Adult Contemporary' | 'Mexican Regional' | 'Tejano'
-  | 'Spanish Oldies' | 'Educational';
+export type AnalogRadioFormat =
+  | "Contemporary Christian"
+  | "Gospel"
+  | "Religious"
+  | "Christian Adult Contemporary"
+  | "Southern Gospel"
+  | "Contemporary Inspirational"
+  | "Spanish Religious"
+  | "Pop Contemporary Hit Radio"
+  | "Adult Contemporary"
+  | "Other"
+  | "World Ethnic"
+  | "Variety"
+  | "Adult Standards/MOR"
+  | "Spanish Variety"
+  | "Latino Urban"
+  | "Spanish Contemporary"
+  | "Spanish Tropical"
+  | "Adult Hits"
+  | "Country"
+  | "Spanish Contemporary Christian"
+  | "Hot Adult Contemporary"
+  | "Modern Adult Contemporary"
+  | "Soft Adult Contemporary"
+  | "Urban Contemporary"
+  | "Rhythmic Contemporary Hit Radio"
+  | "Classic Rock"
+  | "Album Oriented Rock"
+  | "Active Rock"
+  | "Mainstream Rock"
+  | "Rhythmic AC"
+  | "Classical"
+  | "Alternative"
+  | "Album Adult Alternative"
+  | "Urban Adult Contemporary"
+  | "Rhythmic Oldies"
+  | "Urban Oldies"
+  | "Jazz"
+  | "New AC (NAC)/Smooth Jazz"
+  | "New Country"
+  | "Classic Country"
+  | "Blues"
+  | "Easy Listening"
+  | "Holiday Music"
+  | "Oldies"
+  | "Nostalgia"
+  | "80's Hits"
+  | "Classic Hits"
+  | "Talk/Personality"
+  | "Spanish Adult Hits"
+  | "Spanish Hot Adult Contemporary"
+  | "Mexican Regional"
+  | "Tejano"
+  | "Spanish Oldies"
+  | "Educational";
 
 export interface AnalogRadioRatingDto {
   month: string;
@@ -884,11 +941,15 @@ export interface SessionDto {
   systemUserAuth: UserDto;
 }
 
-export type ActivityActionType = 
-  | 'session_start' | 'session_end' | 'media_plan_generated'
-  | 'user_created' | 'user_updated' | 'user_deleted';
+export type ActivityActionType =
+  | "session_start"
+  | "session_end"
+  | "media_plan_generated"
+  | "user_created"
+  | "user_updated"
+  | "user_deleted";
 
-export type ActivitySectionType = 'auth' | 'admin' | 'media_plan';
+export type ActivitySectionType = "auth" | "admin" | "media_plan";
 
 export interface ActionDto {
   id?: string;
@@ -1042,4 +1103,23 @@ export interface UpdateCampaignDto {
 // Auth Types
 export interface UserVerificationResponse {
   verified: boolean;
-} 
+}
+
+export const filtersAvailableContext = `
+= Equal
+!= NOT equal
+> Greater than
+>= Greater than or equal
+< Less than
+<= Less than or equal
+~ Like/Contains (if not specified auto wraps the right string OPERAND in a "%" for wildcard match)
+!~ NOT Like/Contains (if not specified auto wraps the right string OPERAND in a "%" for wildcard match)
+?= Any/At least one of Equal
+?!= Any/At least one of NOT equal
+?> Any/At least one of Greater than
+?>= Any/At least one of Greater than or equal
+?< Any/At least one of Less than
+?<= Any/At least one of Less than or equal
+?~ Any/At least one of Like/Contains (if not specified auto wraps the right string OPERAND in a "%" for wildcard match)
+?!~ Any/At least one of NOT Like/Contains (if not specified auto wraps the right string OPERAND in a "%" for wildcard match)
+`;
