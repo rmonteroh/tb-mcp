@@ -18,11 +18,6 @@ export class TicketBeepApiService {
 
     // Add request interceptor for authentication
     this.client.interceptors.request.use((config) => {
-      console.log("config-> ", config);
-      console.log("this.authToken-> ", this.authToken);
-      /* if (this.config.ticketbeep.apiKey) {
-        config.headers["tb-access-key"] = this.config.ticketbeep.apiKey;
-      } */
       if (this.authToken) {
         config.headers["Authorization"] = `Bearer ${this.authToken}`;
       }
@@ -37,10 +32,6 @@ export class TicketBeepApiService {
         throw error;
       }
     );
-  }
-
-  private get config() {
-    return config;
   }
 
   setAuthToken(token?: string) {

@@ -142,9 +142,4 @@ const port = config.mcp.port;
 
 app.listen(port, () => {
   console.log(`MCP server running on port ${port}`);
-  if (config.ticketbeep.apiKey) {
-    console.log("TicketBeep API key authentication enabled");
-  } else {
-    console.log("No TicketBeep API key configured - authentication disabled");
-  }
 });
